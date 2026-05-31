@@ -8,6 +8,10 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { OffersModule } from './modules/offers/offers.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { StoresModule } from './modules/stores/stores.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MerchantsModule } from './modules/merchants/merchants.module';
 import { RedisModule } from './redis/redis.module';
 import { DatabaseModule } from './database/database.module';
 import { QueueModule } from './queue/queue.module';
@@ -49,6 +53,10 @@ import { QueueModule } from './queue/queue.module';
     RedisModule,
     AuthModule,
     StoresModule,
+    ProductsModule,
+    ReviewsModule,
+    NotificationsModule,
+    MerchantsModule,
     OffersModule,
     OrdersModule,
     PaymentsModule,
