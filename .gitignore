@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Testing
+coverage/
+*.lcov
+
+# Flutter
+flutter/**/build/
+flutter/**/.dart_tool/
+flutter/**/.packages
+flutter/**/.pub/
+flutter/**/pubspec.lock
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# Temp
+tmp/
+temp/
