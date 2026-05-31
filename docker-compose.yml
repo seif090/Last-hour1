@@ -1,0 +1,128 @@
+# ================================================================
+# LAST HOUR — Local Development Environment
+# ================================================================
+# Usage:
+#   docker compose up -d                    # Start all services
+#   docker compose up -d postgres redis     # Start only DB + cache
+#   docker compose logs -f backend          # Stream backend logs
+
+version: "3.9"
+
+x-common-vars: &common
+  NODE_ENV: development
+  LOG_LEVEL: debug
+
+services:
+
+  # ─── PostgreSQL + PostGIS ─────────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: lasthour-pg
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: lasthour
+      POSTGRES_USER: lasthour
+      POSTGRES_PASSWORD: lasthour_dev
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lasthour"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ─── Redis 7 ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: lasthour-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Backend (NestJS) ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: lasthour-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "9229:9229"          # Debugger
+    environment:
+      <<: *common
+      DATABASE_URL: postgresql://lasthour:lasthour_dev@postgres:5432/lasthour
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret-change-in-production
+      JWT_EXPIRES_IN: 15m
+      STRIPE_SECRET_KEY: sk_test_xxx
+      PAYMOB_API_KEY: ""
+      GOOGLE_MAPS_API_KEY: ""
+      PORT: 3000
+    volumes:
+      - ./backend/src:/app/src          # Hot-reload
+      - ./backend/test:/app/test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/package.json
+
+  # ─── Adminer (DB GUI — dev only) ──────────────────────────────
+  adminer:
+    image: adminer:latest
+    container_name: lasthour-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    profiles:
+      - devtools
+
+  # ─── Redis Commander (Redis GUI — dev only) ───────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: lasthour-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    profiles:
+      - devtools
+
+volumes:
+  pgdata:
+  redisdata:
