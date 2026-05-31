@@ -20,6 +20,7 @@ import { QueueModule } from './queue/queue.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 @Module({
   imports: [
@@ -81,6 +82,10 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
 })

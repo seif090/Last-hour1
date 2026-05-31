@@ -9,6 +9,7 @@ import {
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
+import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 
 @WebSocketGateway({
   path: '/ws',
@@ -22,27 +23,21 @@ export class OffersGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   server: Server;
 
   private readonly logger = new Logger(OffersGateway.name);
-  private readonly connections = new Map<string, Set<string>>(); // socketId → channels
+  private readonly connections = new Map<string, Set<string>>();
 
-  constructor(private config: ConfigService) {}
+  constructor(
+    private config: ConfigService,
+    private wsAuthGuard: WsAuthGuard,
+  ) {}
 
   afterInit() {
     this.logger.log('WebSocket gateway initialized');
   }
 
+  @UseGuards(WsAuthGuard)
   async handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client authenticated: ${client.id} (${client.data?.user?.role})`);
     this.connections.set(client.id, new Set());
-
-    // Authenticate via token
-    const token = client.handshake.query.token as string;
-    if (!token) {
-      client.emit('error', { code: 'AUTH_REQUIRED', message: 'Token required' });
-      client.disconnect();
-      return;
-    }
-
-    // TODO: Validate JWT token
   }
 
   handleDisconnect(client: Socket) {

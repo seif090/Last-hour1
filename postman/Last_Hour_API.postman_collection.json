@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "Last Hour API",
+    "description": "Real-time flash sale marketplace for surplus food",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "token", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().accessToken);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"test@lasthour.app\",\n  \"password\": \"StrongPass123!\",\n  \"role\": \"customer\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().accessToken);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"customer@test.com\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offers",
+      "item": [
+        {
+          "name": "Browse Nearby",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/offers/nearby?lat=30.0444&lng=31.2357&radius=5000&limit=10", "host": ["{{baseUrl}}"], "path": ["offers", "nearby"], "query": [{ "key": "lat", "value": "30.0444" }, { "key": "lng", "value": "31.2357" }, { "key": "radius", "value": "5000" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Get Offer Detail",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/offers/{{offerId}}", "host": ["{{baseUrl}}"], "path": ["offers", "{{offerId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Place Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Request-Id", "value": "{{$guid}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"offer_id\": \"{{offerId}}\",\n  \"quantity\": 2,\n  \"payment\": {\n    \"provider\": \"stripe\",\n    \"payment_method_id\": \"pm_card_visa\"\n  },\n  \"notes\": \"Pack separately\"\n}" },
+            "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] }
+          }
+        },
+        {
+          "name": "List My Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/orders?status=confirmed&page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "status", "value": "confirmed" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] }
+          }
+        },
+        {
+          "name": "Track Order",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/track", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "track"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merchant",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/merchant/dashboard", "host": ["{{baseUrl}}"], "path": ["merchant", "dashboard"] } }
+        },
+        {
+          "name": "Today Sales",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/merchant/sales/today", "host": ["{{baseUrl}}"], "path": ["merchant", "sales", "today"] } }
+        },
+        {
+          "name": "Create Offer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{productId}}\",\n  \"title\": \"Last Hour Deal\",\n  \"discounted_price\": 25.00,\n  \"original_price\": 60.00,\n  \"stock_initial\": 30,\n  \"max_per_customer\": 5,\n  \"start_time\": \"2026-05-31T19:00:00Z\",\n  \"end_time\": \"2026-05-31T23:00:00Z\"\n}" },
+            "url": { "raw": "{{baseUrl}}/merchant/offers", "host": ["{{baseUrl}}"], "path": ["merchant", "offers"] }
+          }
+        },
+        {
+          "name": "Update Stock",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"stock_remaining\": 15\n}" },
+            "url": { "raw": "{{baseUrl}}/merchant/offers/{{offerId}}/stock", "host": ["{{baseUrl}}"], "path": ["merchant", "offers", "{{offerId}}", "stock"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Platform Stats",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/stats", "host": ["{{baseUrl}}"], "path": ["admin", "stats"] } }
+        },
+        {
+          "name": "List Merchants",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/merchants", "host": ["{{baseUrl}}"], "path": ["admin", "merchants"] } }
+        },
+        {
+          "name": "Verify Merchant",
+          "request": { "method": "PATCH", "url": { "raw": "{{baseUrl}}/admin/merchants/{{merchantId}}/verify", "host": ["{{baseUrl}}"], "path": ["admin", "merchants", "{{merchantId}}", "verify"] } }
+        },
+        {
+          "name": "System Health",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/system/health", "host": ["{{baseUrl}}"], "path": ["admin", "system", "health"] } }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] } }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Submit Review",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"rating\": 5,\n  \"comment\": \"Amazing food!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/reviews", "host": ["{{baseUrl}}"], "path": ["reviews"] }
+          }
+        },
+        {
+          "name": "Store Reviews",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/reviews/store/{{storeId}}", "host": ["{{baseUrl}}"], "path": ["reviews", "store", "{{storeId}}"] } }
+        }
+      ]
+    }
+  ]
+}

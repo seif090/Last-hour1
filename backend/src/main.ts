@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, ShutdownSignal } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -41,11 +41,15 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
+  // Graceful shutdown signals
+  app.enableShutdownHooks([ShutdownSignal.SIGTERM, ShutdownSignal.SIGINT]);
+
   const port = configService.get('PORT', 3000);
   await app.listen(port);
 
-  logger.log(`🚀 Last Hour API running on port ${port}`);
-  logger.log(`📚 Swagger docs at http://localhost:${port}/docs`);
+  logger.log(`Last Hour API running on port ${port}`);
+  logger.log(`Swagger docs at http://localhost:${port}/docs`);
+  logger.log(`Environment: ${configService.get('NODE_ENV', 'development')}`);
 }
 
 bootstrap();
