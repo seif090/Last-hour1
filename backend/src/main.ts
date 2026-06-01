@@ -1,4 +1,5 @@
 if (process.env.DD_TRACE_ENABLED === 'true') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('dd-trace').init({
     service: process.env.DD_SERVICE || 'lasthour-backend',
     env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
