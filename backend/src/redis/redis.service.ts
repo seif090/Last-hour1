@@ -26,7 +26,7 @@ export class RedisService implements OnModuleDestroy {
     this.stockTtl = config.get('REDIS_STOCK_TTL', 30);
     this.offerTtl = config.get('REDIS_OFFER_TTL', 60);
 
-    this.client = new Redis(config.get('REDIS_URL'), {
+    this.client = new Redis(config.get<string>('REDIS_URL')!, {
       retryStrategy: (times) => Math.min(times * 50, 2000),
       enableReadyCheck: true,
       lazyConnect: false,
@@ -40,7 +40,7 @@ export class RedisService implements OnModuleDestroy {
 
   private async loadScripts(): Promise<void> {
     try {
-      this.decrementSha = await this.client.script('LOAD', this.DECREMENT_SCRIPT);
+      this.decrementSha = (await this.client.script('LOAD', this.DECREMENT_SCRIPT)) as string;
     } catch (err) {
       this.logger.error('Failed to load Lua scripts', err);
     }

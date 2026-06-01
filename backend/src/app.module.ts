@@ -21,17 +21,18 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import * as Joi from 'joi';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: require('joi').object({
-        NODE_ENV: require('joi').string().valid('development', 'production', 'test').default('development'),
-        PORT: require('joi').number().default(3000),
-        DATABASE_URL: require('joi').string().uri().required(),
-        REDIS_URL: require('joi').string().uri().required(),
-        JWT_SECRET: require('joi').string().min(32).required(),
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        PORT: Joi.number().default(3000),
+        DATABASE_URL: Joi.string().uri().required(),
+        REDIS_URL: Joi.string().uri().required(),
+        JWT_SECRET: Joi.string().min(32).required(),
       }),
     }),
 

@@ -43,7 +43,7 @@ export class OfferExpirationProcessor {
   }
 
   @Process('check-active-offers')
-  async handleCheckActiveOffers(job: Job<{ limit?: number }>) {
+  async handleCheckActiveOffers(_job: Job<{ limit?: number }>) {
     this.logger.log('Running scheduled active offer check');
 
     const expired = await this.prisma.offer.updateMany({

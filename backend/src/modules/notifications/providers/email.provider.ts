@@ -7,8 +7,9 @@ export class EmailProvider {
 
   constructor(private config: ConfigService) {}
 
-  async send(to: string, subject: string, html: string) {
+  async send(to: string, subject: string, _html: string) {
     try {
+      this.logger.log(`Email to ${to}: ${subject}`);
       // AWS SES / SendGrid integration
       // const params = {
       //   Source: 'noreply@lasthour.app',
@@ -22,7 +23,7 @@ export class EmailProvider {
 
       this.logger.log(`Email sent to ${to}: ${subject}`);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Email send failed to ${to}: ${err.message}`);
       return { success: false, error: err.message };
     }

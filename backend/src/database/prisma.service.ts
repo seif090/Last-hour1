@@ -20,7 +20,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     await this.$connect();
     this.logger.log('Connected to PostgreSQL');
 
-    this.$on('query' as any, (e: any) => {
+    (this.$on as any)('query', (e: any) => {
       if (process.env.NODE_ENV === 'development') {
         this.logger.debug(`Query: ${e.query} [${e.duration}ms]`);
       }

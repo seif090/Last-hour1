@@ -64,8 +64,8 @@ export class MerchantsController {
   @Patch('orders/:orderId/status')
   @ApiOperation({ summary: 'Update order status' })
   async updateOrderStatus(
-    @Param('orderId') orderId: string,
-    @Body('status') status: string,
+    @Param('orderId') _orderId: string,
+    @Body('status') _status: string,
   ) {
     return { success: true };
   }

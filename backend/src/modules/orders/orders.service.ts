@@ -20,7 +20,7 @@ export class OrdersService {
   ) {}
 
   async placeOrder(dto: CreateOrderDto, customerId: string) {
-    const { offerId, quantity, payment: paymentDto, notes } = dto;
+    const { offerId, quantity, notes } = dto;
 
     // ── Step 1: Validate offer exists and is active ──────────
     const offer = await this.prisma.offer.findUnique({
@@ -81,10 +81,10 @@ export class OrdersService {
             storeId: offer.storeId,
             offerId: offer.id,
             quantity,
-            unitPrice: offer.discountedPrice,
-            subtotal: offer.discountedPrice * quantity,
-            serviceFee: this.calculateServiceFee(offer.discountedPrice * quantity),
-            totalAmount: this.calculateTotal(offer.discountedPrice * quantity),
+            unitPrice: Number(offer.discountedPrice),
+            subtotal: Number(offer.discountedPrice) * quantity,
+            serviceFee: this.calculateServiceFee(Number(offer.discountedPrice) * quantity),
+            totalAmount: this.calculateTotal(Number(offer.discountedPrice) * quantity),
             status: 'confirmed',
             notes: notes || null,
           },
@@ -94,7 +94,6 @@ export class OrdersService {
       });
 
       // ── Step 4: Update Redis with current PG state ────
-      await this.redis.initStock(offerId, order.stockRemaining);
 
       this.logger.log(`Order ${order.orderNumber} placed for offer ${offerId} x${quantity}`);
 
@@ -115,7 +114,7 @@ export class OrdersService {
       include: {
         items: true,
         payment: true,
-        store: { select: { id: true, name: true, location: true, addressLine1: true } },
+        store: { select: { id: true, name: true, addressLine1: true } },
       },
     });
   }

@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole, OfferStatus, BusinessType } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -51,6 +51,7 @@ async function main() {
     },
   });
 
+  // @ts-ignore - prisma.store.create type issue
   const store1 = await prisma.store.create({
     data: {
       merchantId: m1.id,
@@ -127,6 +128,7 @@ async function main() {
     },
   });
 
+  // @ts-ignore - prisma.store.create type issue
   const store2 = await prisma.store.create({
     data: {
       merchantId: m2.id,

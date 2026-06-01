@@ -16,7 +16,7 @@ export class NotificationDispatchProcessor {
 
   @Process('push')
   async handlePushNotification(job: Job<NotificationPayload>) {
-    const { userId, type, title, body, data } = job.data;
+    const { userId, type, title, body } = job.data;
 
     try {
       // Firebase Cloud Messaging integration point
@@ -30,7 +30,7 @@ export class NotificationDispatchProcessor {
       // await admin.messaging().send(message);
 
       job.progress(100);
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Push notification failed for user ${userId}: ${err.message}`);
       throw err;
     }
@@ -38,7 +38,7 @@ export class NotificationDispatchProcessor {
 
   @Process('email')
   async handleEmailNotification(job: Job<NotificationPayload>) {
-    const { userId, type, title, body } = job.data;
+    const { userId, type, title } = job.data;
 
     // SendGrid / SES integration point
     this.logger.log(`Email to ${userId}: [${type}] ${title}`);

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { WsException } from '@nestjs/websockets';
@@ -36,7 +36,7 @@ export class WsAuthGuard implements CanActivate {
       };
 
       return true;
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`WebSocket auth failed: ${err.message}`);
       client.emit('error', { code: 'INVALID_TOKEN', message: 'Invalid or expired token' });
       client.disconnect();

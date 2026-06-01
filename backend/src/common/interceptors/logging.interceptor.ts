@@ -20,7 +20,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const response = ctx.getResponse<Response>();
     const { method, url } = request;
 
-    const requestId = request['requestId'] || crypto.randomUUID();
+    const requestId = (request as any)['requestId'] || crypto.randomUUID();
     const startTime = Date.now();
 
     return next.handle().pipe(

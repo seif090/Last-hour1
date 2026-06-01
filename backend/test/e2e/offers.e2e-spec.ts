@@ -1,15 +1,11 @@
-import * as request from 'supertest';
+const request = require('supertest');
 import { app } from './setup';
 
 describe('Offers (e2e)', () => {
-  let authToken: string;
-
   beforeAll(async () => {
-    const res = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .send({ email: 'admin@lasthour.app', password: 'admin123' });
-
-    authToken = res.body.accessToken;
   });
 
   describe('GET /api/v1/offers/nearby', () => {

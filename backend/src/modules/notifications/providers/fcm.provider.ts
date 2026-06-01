@@ -19,7 +19,7 @@ export class FcmProvider {
 
       this.logger.log(`FCM push to ${token.slice(0, 20)}...: ${payload.title}`);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`FCM send failed: ${err.message}`);
       return { success: false, error: err.message };
     }

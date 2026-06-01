@@ -19,7 +19,7 @@ export class SmsProvider {
 
       this.logger.log(`SMS sent to ${phone}: ${message.slice(0, 50)}...`);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`SMS failed to ${phone}: ${err.message}`);
       return { success: false, error: err.message };
     }
