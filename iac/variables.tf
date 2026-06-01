@@ -92,3 +92,15 @@ variable "backend_image_url" {
   description = "Backend Docker image URL in ECR"
   type        = string
 }
+
+variable "github_repository" {
+  description = "GitHub repository (owner/repo) for OIDC"
+  type        = string
+  default     = "seif090/Last-hour1"
+}
+
+variable "datadog_site" {
+  description = "Datadog site (e.g. datadoghq.eu, datadoghq.com)"
+  type        = string
+  default     = "datadoghq.eu"
+}

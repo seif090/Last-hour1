@@ -1,0 +1,16 @@
+aws_region         = "me-south-1"
+environment        = "staging"
+domain_name        = "lasthour.app"
+route53_zone_id    = "ZXXXXXXXXXXXXX"
+acm_certificate_arn = "arn:aws:acm:me-south-1:123456789012:certificate/xxxx-xxxx-xxxx"
+backend_image_url  = "123456789012.dkr.ecr.me-south-1.amazonaws.com/lasthour-backend:latest"
+github_repository  = "seif090/Last-hour1"
+
+# Staging overrides
+rds_instance_class    = "db.t4g.medium"
+rds_allocated_storage = 20
+rds_backup_retention  = 7
+redis_node_type       = "cache.t4g.micro"
+backend_cpu           = "512"
+backend_memory        = "1024"
+backend_desired_count = 1

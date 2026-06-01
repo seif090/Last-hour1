@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - 'backend/**'
       - 'iac/**'
@@ -12,9 +12,6 @@ on:
 env:
   AWS_REGION: me-south-1
   ECR_REPOSITORY: lasthour-backend
-  ECS_CLUSTER: lasthour-production
-  ECS_SERVICE: lasthour-backend-service
-  ECS_TASK_DEFINITION: iac/task-definition.json
 
 jobs:
   deploy:
@@ -26,6 +23,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set environment
+        id: env
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "cluster=lasthour-production" >> $GITHUB_OUTPUT
+            echo "service=lasthour-production-backend-service" >> $GITHUB_OUTPUT
+            echo "task-def=iac/task-definition.json" >> $GITHUB_OUTPUT
+          else
+            echo "cluster=lasthour-staging" >> $GITHUB_OUTPUT
+            echo "service=lasthour-staging-backend-service" >> $GITHUB_OUTPUT
+            echo "task-def=iac/task-definition-staging.json" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -53,7 +63,7 @@ jobs:
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          task-definition: ${{ steps.env.outputs.task-def }}
           container-name: lasthour-backend
           image: ${{ steps.build-image.outputs.image }}
 
@@ -61,13 +71,13 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ steps.env.outputs.service }}
+          cluster: ${{ steps.env.outputs.cluster }}
           wait-for-service-stability: true
 
       - name: Verify deployment
         run: |
           aws ecs describe-services \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
+            --cluster ${{ steps.env.outputs.cluster }} \
+            --services ${{ steps.env.outputs.service }} \
             --query 'services[0].{status:status,desired:desiredCount,running:runningCount,pending:pendingCount}'

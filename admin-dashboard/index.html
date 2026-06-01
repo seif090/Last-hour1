@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last Hour Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sidebar-w: 240px; --sidebar-collapsed: 64px;
+  --bg-body: #0f1117; --bg-sidebar: #161923; --bg-card: #1c1f2b;
+  --bg-hover: #252836; --bg-input: #252836;
+  --text: #e2e8f0; --text-muted: #94a3b8; --text-dim: #64748b;
+  --brand: #8b5cf6; --brand-hover: #7c3aed; --brand-glow: rgba(139,92,246,0.25);
+  --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
+  --border: #2d3041; --radius: 10px; --radius-sm: 6px;
+}
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg-body); color: var(--text); line-height: 1.5;
+  overflow: hidden;
+}
+a { color: var(--brand); text-decoration: none; }
+
+/* ===== LAYOUT ===== */
+.app { display: flex; height: 100vh; }
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w); background: var(--bg-sidebar);
+  border-right: 1px solid var(--border); display: flex;
+  flex-direction: column; flex-shrink: 0; transition: width .2s;
+  position: relative; z-index: 20;
+}
+.sidebar-header {
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-header .logo {
+  width: 32px; height: 32px; background: var(--brand);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-weight: 700; font-size: 16px;
+  color: #fff; flex-shrink: 0;
+}
+.sidebar-header h1 { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; color: var(--text-muted);
+  transition: all .15s; white-space: nowrap; font-size: 14px;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--brand-glow); color: var(--brand); }
+.nav-item i { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
+
+/* ===== MAIN ===== */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 28px; border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar); min-height: 60px;
+}
+.topbar h2 { font-size: 18px; font-weight: 600; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.content { flex: 1; padding: 24px 28px; overflow-y: auto; }
+
+/* ===== LOGIN SCREEN ===== */
+.login-screen {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; background: var(--bg-body);
+}
+.login-card {
+  background: var(--bg-card); padding: 40px; border-radius: var(--radius);
+  border: 1px solid var(--border); width: 100%; max-width: 400px;
+}
+.login-card h2 { text-align: center; margin-bottom: 8px; font-size: 22px; }
+.login-card p { text-align: center; color: var(--text-muted); margin-bottom: 28px; font-size: 14px; }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-muted); }
+.form-input {
+  width: 100%; padding: 10px 14px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 14px; outline: none; transition: border .15s;
+}
+.form-input:focus { border-color: var(--brand); }
+select.form-input { cursor: pointer; appearance: auto; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+  border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-hover); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { opacity: .85; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { opacity: .85; }
+.btn-warning { background: var(--warning); color: #000; }
+.btn-warning:hover { opacity: .85; }
+.btn-outline {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+}
+.btn-outline:hover { background: var(--bg-hover); color: var(--text); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-block { width: 100%; justify-content: center; padding: 11px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ===== STAT CARDS ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; display: flex;
+  align-items: flex-start; gap: 14px;
+}
+.stat-card .icon {
+  width: 42px; height: 42px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.stat-card .info { flex: 1; }
+.stat-card .label { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-card .value { font-size: 24px; font-weight: 700; }
+
+/* ===== TABLES ===== */
+.table-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+.table-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 10px;
+}
+.table-header h3 { font-size: 15px; font-weight: 600; }
+.table-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  text-align: left; padding: 10px 16px; font-weight: 500; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase;
+  letter-spacing: .05em; white-space: nowrap;
+}
+tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--bg-hover); }
+
+/* ===== PAGINATION ===== */
+.table-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-muted); flex-wrap: wrap; gap: 10px;
+}
+.pagination { display: flex; align-items: center; gap: 4px; }
+.pagination button {
+  padding: 5px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px;
+}
+.pagination button:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
+.pagination button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+.pagination button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ===== CHART ===== */
+.chart-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 24px;
+}
+.chart-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.chart-wrap { position: relative; height: 280px; }
+
+/* ===== HEALTH ===== */
+.health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.health-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.health-item .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.health-item .value { font-size: 20px; font-weight: 600; }
+.health-item .status { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-block; padding: 2px 9px; border-radius: 100px;
+  font-size: 11px; font-weight: 500;
+}
+.badge-success { background: rgba(34,197,94,.15); color: var(--success); }
+.badge-danger { background: rgba(239,68,68,.15); color: var(--danger); }
+.badge-warning { background: rgba(245,158,11,.15); color: var(--warning); }
+.badge-info { background: rgba(139,92,246,.15); color: var(--brand); }
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 12px 18px; border-radius: var(--radius-sm);
+  font-size: 13px; color: #fff; display: flex; align-items: center;
+  gap: 10px; min-width: 280px; max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  animation: slideIn .25s ease-out;
+}
+.toast-success { background: #166534; border-left: 3px solid var(--success); }
+.toast-error { background: #7f1d1d; border-left: 3px solid var(--danger); }
+.toast-info { background: #1e3a5f; border-left: 3px solid #3b82f6; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ===== LOADING ===== */
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin .6s linear infinite; }
+.spinner-sm { width: 14px; height: 14px; border-width: 1.5px; }
+.spinner-lg { width: 36px; height: 36px; border-width: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 14px;
+  color: var(--text-muted); font-size: 14px;
+}
+
+/* ===== TABBED PAGES ===== */
+.page { display: none; }
+.page.active { display: block; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  margin-right: 6px;
+}
+.status-dot.up { background: var(--success); }
+.status-dot.down { background: var(--danger); }
+.status-dot.degraded { background: var(--warning); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+.empty-state i { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { width: var(--sidebar-collapsed); }
+  .sidebar-header h1, .nav-item span { display: none; }
+  .sidebar-header { justify-content: center; padding: 16px 10px; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .nav-item i { margin: 0; }
+  .sidebar-footer .nav-item span { display: none; }
+  .content { padding: 16px; }
+  .topbar { padding: 10px 16px; }
+  .stats-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<div id="app" class="app"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== CONFIG =====
+const API_BASE = new URLSearchParams(window.location.search).get('api') || '/api/v1';
+const DAYS_REVENUE = 30;
+const PAGE_SIZE = 20;
+const HEALTH_REFRESH_MS = 30000;
+
+// ===== STATE =====
+let state = {
+  token: localStorage.getItem('admin_token') || null,
+  currentPage: 'dashboard',
+  user: null,
+};
+
+// ===== DOM REFS =====
+const $app = document.getElementById('app');
+
+// ===== TOAST =====
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+  el.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// ===== FETCH WRAPPER =====
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (state.token) opts.headers['Authorization'] = `Bearer ${state.token}`;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (res.status === 401) {
+    state.token = null; localStorage.removeItem('admin_token');
+    render();
+    throw new Error('Unauthorized');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+    throw new Error(err.message || `Request failed (${res.status})`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function apiGet(path) { return api('GET', path); }
+function apiPost(path, body) { return api('POST', path, body); }
+function apiPatch(path, body) { return api('PATCH', path, body); }
+
+// ===== RENDER =====
+function render() {
+  if (!state.token) { renderLogin(); return; }
+  renderApp();
+}
+
+// ===== LOGIN =====
+function renderLogin() {
+  $app.innerHTML = `
+    <div class="login-screen">
+      <div class="login-card">
+        <div style="text-align:center;font-size:36px;margin-bottom:8px;color:var(--brand);">
+          <i class="fas fa-clock"></i>
+        </div>
+        <h2>Admin Login</h2>
+        <p>Last Hour marketplace</p>
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-input" type="email" id="loginEmail" placeholder="admin@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span> Signing in...';
+  try {
+    const data = await apiPost('/auth/login', { email, password });
+    state.token = data.accessToken || data.token;
+    localStorage.setItem('admin_token', state.token);
+    render();
+  } catch (err) {
+    toast(err.message, 'error');
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+  }
+}
+
+function handleLogout() {
+  state.token = null; localStorage.removeItem('admin_token'); render(); toast('Logged out', 'info');
+}
+
+// ===== APP SHELL =====
+function renderApp() {
+  const pages = ['dashboard', 'users', 'merchants', 'orders', 'offers', 'health'];
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'fa-gauge-high' },
+    { id: 'users', label: 'Users', icon: 'fa-users' },
+    { id: 'merchants', label: 'Merchants', icon: 'fa-store' },
+    { id: 'orders', label: 'Orders', icon: 'fa-truck' },
+    { id: 'offers', label: 'Offers', icon: 'fa-tag' },
+    { id: 'health', label: 'System Health', icon: 'fa-heart-pulse' },
+  ];
+
+  $app.innerHTML = `
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">LH</div>
+        <h1>Last Hour</h1>
+      </div>
+      <nav class="sidebar-nav">
+        ${navItems.map(n => `
+          <button class="nav-item ${n.id === state.currentPage ? 'active' : ''}" data-page="${n.id}">
+            <i class="fas ${n.icon}"></i><span>${n.label}</span>
+          </button>
+        `).join('')}
+      </nav>
+      <div class="sidebar-footer">
+        <button class="nav-item" id="logoutBtn">
+          <i class="fas fa-right-from-bracket"></i><span>Logout</span>
+        </button>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <h2 id="pageTitle">${navItems.find(n => n.id === state.currentPage)?.label || ''}</h2>
+        <div class="topbar-actions"></div>
+      </div>
+      <div class="content" id="pageContent">
+        ${pages.map(p => `<div class="page ${p === state.currentPage ? 'active' : ''}" id="page_${p}"></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      state.currentPage = el.dataset.page;
+      render();
+    });
+  });
+  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+  const pageTitle = document.getElementById('pageTitle');
+  const activeNav = navItems.find(n => n.id === state.currentPage);
+  if (activeNav) pageTitle.textContent = activeNav.label;
+
+  loadCurrentPage();
+}
+
+// ===== PAGE LOADER =====
+function loadCurrentPage() {
+  const page = state.currentPage;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(`page_${page}`);
+  if (el) el.classList.add('active');
+
+  switch (page) {
+    case 'dashboard': loadDashboard(); break;
+    case 'users': loadUsers(1); break;
+    case 'merchants': loadMerchants(1); break;
+    case 'orders': loadOrders(1); break;
+    case 'offers': loadOffers(); break;
+    case 'health': loadHealth(); break;
+  }
+}
+
+// ===== HELPERS =====
+function showLoading(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = '<div class="loading-wrap"><div class="spinner spinner-lg"></div><span>Loading...</span></div>';
+}
+
+function showEmpty(containerId, msg = 'No data') {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>${msg}</p></div>`;
+}
+
+function paginationHTML(current, total, fn) {
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  let html = `<div class="pagination">
+    <button ${current <= 1 ? 'disabled' : ''} data-page="${current - 1}" class="page-btn">&laquo;</button>`;
+  const start = Math.max(1, current - 2);
+  const end = Math.min(totalPages, current + 2);
+  if (start > 1) html += `<button class="page-btn" data-page="1">1</button>${start > 2 ? '<button disabled>...</button>' : ''}`;
+  for (let i = start; i <= end; i++) html += `<button class="page-btn ${i === current ? 'active' : ''}" data-page="${i}">${i}</button>`;
+  if (end < totalPages) html += `${end < totalPages - 1 ? '<button disabled>...</button>' : ''}<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+  html += `<button ${current >= totalPages ? 'disabled' : ''} data-page="${current + 1}" class="page-btn">&raquo;</button></div>`;
+  return html;
+}
+
+// ===== DASHBOARD =====
+let revenueChart = null;
+
+async function loadDashboard() {
+  const container = document.getElementById('page_dashboard');
+  showLoading('page_dashboard');
+  try {
+    const [stats, revenue] = await Promise.all([
+      apiGet('/admin/stats').catch(() => ({ totalUsers: 0, totalMerchants: 0, totalOrders: 0, activeOffers: 0, ordersToday: 0 })),
+      apiGet(`/admin/revenue?days=${DAYS_REVENUE}`).catch(() => []),
+    ]);
+
+    container.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(139,92,246,.15);color:var(--brand);"><i class="fas fa-users"></i></div>
+          <div class="info"><div class="label">Total Users</div><div class="value" id="statUsers">${stats.totalUsers ?? '—'}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(34,197,94,.15);color:var(--success);"><i class="fas fa-store"></i></div>
+          <div class="info"><div class="label">Merchants</div><div class="value" id="statMerchants">${stats.totalMerchants ?? '—'}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(59,130,246,.15);color:#3b82f6;"><i class="fas fa-truck"></i></div>
+          <div class="info"><div class="label">Total Orders</div><div class="value" id="statOrders">${stats.totalOrders ?? '—'}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(245,158,11,.15);color:var(--warning);"><i class="fas fa-tag"></i></div>
+          <div class="info"><div class="label">Active Offers</div><div class="value" id="statOffers">${stats.activeOffers ?? '—'}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="icon" style="background:rgba(239,68,68,.15);color:var(--danger);"><i class="fas fa-calendar-day"></i></div>
+          <div class="info"><div class="label">Orders Today</div><div class="value" id="statToday">${stats.ordersToday ?? '—'}</div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-chart-line" style="color:var(--brand);margin-right:8px;"></i>Revenue (Last ${DAYS_REVENUE} Days)</h3>
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
+    `;
+
+    const rev = Array.isArray(revenue) ? revenue : (revenue.data || []);
+    const labels = rev.map(r => dayjs(r.date || r.day).format('MMM D'));
+    const values = rev.map(r => Number(r.total || r.amount || r.revenue || 0));
+
+    if (revenueChart) { revenueChart.destroy(); revenueChart = null; }
+    const ctx = document.getElementById('revenueChart');
+    if (ctx && labels.length) {
+      revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Revenue',
+            data: values,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139,92,246,.1)',
+            fill: true,
+            tension: .35,
+            pointRadius: 3,
+            pointBackgroundColor: '#8b5cf6',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,.04)' },
+              ticks: { color: '#94a3b8', font: { size: 11 } },
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,.04)' },
+              ticks: { color: '#94a3b8', font: { size: 11 }, callback: v => '$' + v },
+            }
+          }
+        }
+      });
+    } else if (ctx) {
+      document.querySelector('.chart-wrap').innerHTML = '<div class="empty-state"><i class="fas fa-chart-line"></i><p>No revenue data</p></div>';
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load dashboard: ${err.message}</p></div>`;
+  }
+}
+
+// ===== USERS =====
+let usersFilterRole = '';
+
+async function loadUsers(page) {
+  const container = document.getElementById('page_users');
+  showLoading('page_users');
+  try {
+    const params = new URLSearchParams({ page, limit: PAGE_SIZE });
+    if (usersFilterRole) params.set('role', usersFilterRole);
+    const data = await apiGet(`/admin/users?${params}`);
+    const users = data.users || data.data || [];
+    const total = data.total || data.count || users.length;
+
+    container.innerHTML = `
+      <div class="table-section">
+        <div class="table-header">
+          <h3><i class="fas fa-users" style="color:var(--brand);margin-right:8px;"></i>Users</h3>
+          <div class="table-controls">
+            <select class="form-input" style="width:auto;padding:6px 12px;font-size:13px;" id="usersRoleFilter">
+              <option value="">All Roles</option>
+              <option value="USER" ${usersFilterRole === 'USER' ? 'selected' : ''}>User</option>
+              <option value="MERCHANT" ${usersFilterRole === 'MERCHANT' ? 'selected' : ''}>Merchant</option>
+              <option value="ADMIN" ${usersFilterRole === 'ADMIN' ? 'selected' : ''}>Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="usersBody">
+              ${users.map(u => `
+                <tr>
+                  <td style="color:var(--text-dim);font-family:monospace;font-size:12px;">${u.id ? u.id.substring(0,8) : '—'}</td>
+                  <td>${u.name || u.username || '—'}</td>
+                  <td>${u.email || '—'}</td>
+                  <td><span class="badge badge-info">${u.role || 'USER'}</span></td>
+                  <td>${u.banned ? '<span class="badge badge-danger">Banned</span>' : '<span class="badge badge-success">Active</span>'}</td>
+                  <td style="color:var(--text-dim);font-size:12px;">${u.createdAt ? dayjs(u.createdAt).format('MMM D, YYYY') : '—'}</td>
+                  <td>
+                    <button class="btn btn-sm ${u.banned ? 'btn-success' : 'btn-warning'} ban-user-btn" data-id="${u.id}" data-banned="${u.banned}">
+                      <i class="fas ${u.banned ? 'fa-check' : 'fa-ban'}"></i> ${u.banned ? 'Unban' : 'Ban'}
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>${users.length} of ${total} users</span>
+          ${paginationHTML(page, total, 'users')}
+        </div>
+      </div>
+    `;
+
+    document.getElementById('usersRoleFilter').addEventListener('change', e => {
+      usersFilterRole = e.target.value;
+      loadUsers(1);
+    });
+    document.querySelectorAll('.ban-user-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const banned = btn.dataset.banned === 'true';
+        btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span>';
+        try {
+          await apiPatch(`/admin/users/${id}/ban`, { banned: !banned });
+          toast(banned ? 'User unbanned' : 'User banned', 'success');
+          loadUsers(page);
+        } catch (err) { toast(err.message, 'error'); btn.disabled = false; btn.textContent = banned ? 'Unban' : 'Ban'; }
+      });
+    });
+    document.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', () => loadUsers(parseInt(btn.dataset.page)));
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load users</p></div>`;
+  }
+}
+
+// ===== MERCHANTS =====
+async function loadMerchants(page) {
+  const container = document.getElementById('page_merchants');
+  showLoading('page_merchants');
+  try {
+    const data = await apiGet(`/admin/merchants?page=${page}&limit=${PAGE_SIZE}`);
+    const merchants = data.merchants || data.data || [];
+    const total = data.total || data.count || merchants.length;
+
+    container.innerHTML = `
+      <div class="table-section">
+        <div class="table-header">
+          <h3><i class="fas fa-store" style="color:var(--brand);margin-right:8px;"></i>Merchants</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Name</th><th>Email</th><th>Stores</th><th>Verified</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="merchantsBody">
+              ${merchants.map(m => `
+                <tr>
+                  <td style="color:var(--text-dim);font-family:monospace;font-size:12px;">${m.id ? m.id.substring(0,8) : '—'}</td>
+                  <td>${m.name || m.businessName || m.username || '—'}</td>
+                  <td>${m.email || '—'}</td>
+                  <td>${m.storeCount ?? m._count?.stores ?? '—'}</td>
+                  <td>${m.verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge badge-warning">Pending</span>'}</td>
+                  <td>
+                    ${!m.verified ? `<button class="btn btn-sm btn-success verify-merchant-btn" data-id="${m.id}">
+                      <i class="fas fa-check"></i> Verify
+                    </button>` : '<span style="color:var(--text-muted);font-size:12px;">—</span>'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>${merchants.length} of ${total} merchants</span>
+          ${paginationHTML(page, total, 'merchants')}
+        </div>
+      </div>
+    `;
+
+    document.querySelectorAll('.verify-merchant-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span>';
+        try {
+          await apiPatch(`/admin/merchants/${id}/verify`);
+          toast('Merchant verified', 'success');
+          loadMerchants(page);
+        } catch (err) { toast(err.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Verify'; }
+      });
+    });
+    document.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', () => loadMerchants(parseInt(btn.dataset.page)));
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load merchants</p></div>`;
+  }
+}
+
+// ===== ORDERS =====
+let ordersFilterStatus = '';
+
+async function loadOrders(page) {
+  const container = document.getElementById('page_orders');
+  showLoading('page_orders');
+  try {
+    const params = new URLSearchParams({ page, limit: PAGE_SIZE });
+    if (ordersFilterStatus) params.set('status', ordersFilterStatus);
+    const data = await apiGet(`/admin/orders?${params}`);
+    const orders = data.orders || data.data || [];
+    const total = data.total || data.count || orders.length;
+
+    const statusLabels = { PENDING: 'Pending', CONFIRMED: 'Confirmed', PREPARING: 'Preparing', READY: 'Ready', COMPLETED: 'Completed', CANCELLED: 'Cancelled', EXPIRED: 'Expired' };
+    const statusBadges = { PENDING: 'badge-warning', CONFIRMED: 'badge-info', PREPARING: 'badge-info', READY: 'badge-info', COMPLETED: 'badge-success', CANCELLED: 'badge-danger', EXPIRED: 'badge-danger' };
+
+    container.innerHTML = `
+      <div class="table-section">
+        <div class="table-header">
+          <h3><i class="fas fa-truck" style="color:var(--brand);margin-right:8px;"></i>Orders</h3>
+          <div class="table-controls">
+            <select class="form-input" style="width:auto;padding:6px 12px;font-size:13px;" id="ordersStatusFilter">
+              <option value="">All Statuses</option>
+              ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${ordersFilterStatus === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Order #</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th>
+            </tr></thead>
+            <tbody id="ordersBody">
+              ${orders.map(o => `
+                <tr>
+                  <td style="font-family:monospace;">${o.orderNumber || o.id?.substring(0,8) || '—'}</td>
+                  <td>${o.customer?.email || o.user?.email || o.email || '—'}</td>
+                  <td>$${(o.totalAmount ?? o.amount ?? 0).toFixed(2)}</td>
+                  <td><span class="badge ${statusBadges[o.status] || 'badge-info'}">${statusLabels[o.status] || o.status}</span></td>
+                  <td style="color:var(--text-dim);font-size:12px;">${o.createdAt ? dayjs(o.createdAt).format('MMM D, YYYY h:mm A') : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>${orders.length} of ${total} orders</span>
+          ${paginationHTML(page, total, 'orders')}
+        </div>
+      </div>
+    `;
+
+    document.getElementById('ordersStatusFilter').addEventListener('change', e => {
+      ordersFilterStatus = e.target.value;
+      loadOrders(1);
+    });
+    document.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', () => loadOrders(parseInt(btn.dataset.page)));
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load orders</p></div>`;
+  }
+}
+
+// ===== OFFERS =====
+let offersFilterStatus = '';
+
+async function loadOffers() {
+  const container = document.getElementById('page_offers');
+  showLoading('page_offers');
+  try {
+    const params = new URLSearchParams();
+    if (offersFilterStatus) params.set('status', offersFilterStatus);
+    const data = await apiGet(`/admin/offers${params.toString() ? '?' + params : ''}`);
+    const offers = data.offers || data.data || [];
+
+    const statusLabels = { ACTIVE: 'Active', EXPIRED: 'Expired', PENDING: 'Pending', CANCELLED: 'Cancelled' };
+    const statusBadges = { ACTIVE: 'badge-success', EXPIRED: 'badge-danger', PENDING: 'badge-warning', CANCELLED: 'badge-danger' };
+
+    container.innerHTML = `
+      <div class="table-section">
+        <div class="table-header">
+          <h3><i class="fas fa-tag" style="color:var(--brand);margin-right:8px;"></i>Offers</h3>
+          <div class="table-controls">
+            <select class="form-input" style="width:auto;padding:6px 12px;font-size:13px;" id="offersStatusFilter">
+              <option value="">All Statuses</option>
+              ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${offersFilterStatus === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Title</th><th>Merchant</th><th>Original</th><th>Offer</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="offersBody">
+              ${offers.map(o => `
+                <tr>
+                  <td style="color:var(--text-dim);font-family:monospace;font-size:12px;">${o.id ? o.id.substring(0,8) : '—'}</td>
+                  <td>${o.title || o.name || '—'}</td>
+                  <td>${o.merchant?.name || o.merchant?.businessName || o.merchantId?.substring(0,8) || '—'}</td>
+                  <td>$${(o.originalPrice ?? o.price ?? 0).toFixed(2)}</td>
+                  <td style="color:var(--success);font-weight:600;">$${(o.offerPrice ?? o.discountedPrice ?? 0).toFixed(2)}</td>
+                  <td><span class="badge ${statusBadges[o.status] || 'badge-info'}">${statusLabels[o.status] || o.status}</span></td>
+                  <td>
+                    ${o.status === 'ACTIVE' ? `<button class="btn btn-sm btn-danger force-expire-btn" data-id="${o.id}">
+                      <i class="fas fa-clock"></i> Force Expire
+                    </button>` : '<span style="color:var(--text-muted);font-size:12px;">—</span>'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('offersStatusFilter').addEventListener('change', e => {
+      offersFilterStatus = e.target.value;
+      loadOffers();
+    });
+    document.querySelectorAll('.force-expire-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span>';
+        try {
+          await apiPatch(`/admin/offers/${id}/expire`);
+          toast('Offer expired', 'success');
+          loadOffers();
+        } catch (err) { toast(err.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-clock"></i> Force Expire'; }
+      });
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load offers</p></div>`;
+  }
+}
+
+// ===== SYSTEM HEALTH =====
+let healthInterval = null;
+
+async function loadHealth() {
+  if (healthInterval) { clearInterval(healthInterval); healthInterval = null; }
+  const container = document.getElementById('page_health');
+  await fetchHealth(container);
+  healthInterval = setInterval(() => fetchHealth(container), HEALTH_REFRESH_MS);
+}
+
+async function fetchHealth(container) {
+  try {
+    const data = await apiGet('/admin/system/health');
+    const h = data.data || data;
+    const dbSec = h.databaseLatency ?? h.dbLatency ?? h.db_latency ?? 0;
+    const dbMs = typeof dbSec === 'number' && dbSec < 1 ? Math.round(dbSec * 1000) : dbSec;
+    const cacheMs = h.cacheLatency ?? h.redisLatency ?? h.cache_latency ?? 0;
+    const mem = h.memory ?? h.memoryUsage ?? h.memory_usage ?? '—';
+    const uptime = h.uptime ?? h.uptimeSeconds ?? h.uptime_seconds ?? 0;
+    const status = h.status ?? h.overallStatus ?? 'healthy';
+
+    const fmtUptime = s => {
+      const d = Math.floor(s / 86400); const hh = Math.floor((s % 86400) / 3600); const mm = Math.floor((s % 3600) / 60);
+      return `${d ? d + 'd ' : ''}${hh ? hh + 'h ' : ''}${mm}m ${Math.floor(s % 60)}s`;
+    };
+
+    container.innerHTML = `
+      <div style="margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;">
+          <span class="status-dot ${status === 'healthy' ? 'up' : status === 'degraded' ? 'degraded' : 'down'}"></span>
+          <span style="text-transform:capitalize;">${status}</span>
+        </div>
+        <div style="flex:1;"></div>
+        <span style="color:var(--text-muted);font-size:12px;"><i class="fas fa-rotate"></i> Auto-refreshes every 30s</span>
+      </div>
+      <div class="health-grid">
+        <div class="health-item">
+          <div class="label"><i class="fas fa-database" style="margin-right:6px;"></i>Database Latency</div>
+          <div class="value">${typeof dbMs === 'number' ? dbMs.toFixed(1) + ' ms' : dbMs}</div>
+          <div class="status"><span class="status-dot ${dbMs > 500 ? 'down' : dbMs > 100 ? 'degraded' : 'up'}"></span>${dbMs > 500 ? 'Slow' : dbMs > 100 ? 'Moderate' : 'Fast'}</div>
+        </div>
+        <div class="health-item">
+          <div class="label"><i class="fas fa-server" style="margin-right:6px;"></i>Cache Latency</div>
+          <div class="value">${typeof cacheMs === 'number' ? cacheMs.toFixed(1) + ' ms' : cacheMs}</div>
+          <div class="status"><span class="status-dot ${cacheMs > 200 ? 'down' : cacheMs > 50 ? 'degraded' : 'up'}"></span>${cacheMs > 200 ? 'Slow' : cacheMs > 50 ? 'Moderate' : 'Fast'}</div>
+        </div>
+        <div class="health-item">
+          <div class="label"><i class="fas fa-microchip" style="margin-right:6px;"></i>Memory Usage</div>
+          <div class="value">${mem}</div>
+        </div>
+        <div class="health-item">
+          <div class="label"><i class="fas fa-clock" style="margin-right:6px;"></i>Uptime</div>
+          <div class="value" style="font-size:16px;">${fmtUptime(uptime)}</div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>Failed to load health data: ${err.message}</p></div>`;
+  }
+}
+
+// ===== INIT =====
+render();
+</script>
+</body>
+</html>

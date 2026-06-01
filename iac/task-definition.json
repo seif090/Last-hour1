@@ -1,0 +1,53 @@
+{
+  "family": "lasthour-production-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "",
+  "taskRoleArn": "",
+  "containerDefinitions": [
+    {
+      "name": "lasthour-backend",
+      "image": "",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp",
+          "appProtocol": "http"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT", "value": "3000" },
+        { "name": "DATABASE_URL", "value": "" },
+        { "name": "REDIS_URL", "value": "" },
+        { "name": "JWT_ISSUER", "value": "lasthour.app" },
+        { "name": "STRIPE_CURRENCY", "value": "egp" },
+        { "name": "DD_SERVICE", "value": "lasthour-backend" },
+        { "name": "DD_ENV", "value": "production" },
+        { "name": "DD_LOGS_INJECTION", "value": "true" }
+      ],
+      "secrets": [
+        { "name": "JWT_SECRET", "valueFrom": "" },
+        { "name": "STRIPE_SECRET_KEY", "valueFrom": "" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/lasthour-production-backend",
+          "awslogs-region": "me-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -qO- http://localhost:3000/api/v1/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

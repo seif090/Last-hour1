@@ -1,3 +1,13 @@
+if (process.env.DD_TRACE_ENABLED === 'true') {
+  require('dd-trace').init({
+    service: process.env.DD_SERVICE || 'lasthour-backend',
+    env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
+    logInjection: process.env.DD_LOGS_INJECTION === 'true',
+    runtimeMetrics: true,
+    profiling: true,
+  });
+}
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger, ShutdownSignal } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

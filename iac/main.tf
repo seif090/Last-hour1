@@ -399,11 +399,17 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "REDIS_URL", value = "rediss://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379" },
         { name = "JWT_ISSUER", value = "lasthour.app" },
         { name = "STRIPE_CURRENCY", value = "egp" },
+        { name = "DD_TRACE_ENABLED", value = "true" },
+        { name = "DD_SERVICE", value = "lasthour-backend" },
+        { name = "DD_ENV", value = var.environment },
+        { name = "DD_LOGS_INJECTION", value = "true" },
+        { name = "DD_SITE", value = var.datadog_site },
       ]
 
       secrets = [
         { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.jwt.arn}" },
         { name = "STRIPE_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.stripe.arn}" },
+        { name = "DD_API_KEY", valueFrom = "${aws_secretsmanager_secret.datadog_api_key.arn}" },
       ]
 
       logConfiguration = {
@@ -421,6 +427,36 @@ resource "aws_ecs_task_definition" "backend" {
         timeout     = 5
         retries     = 3
         startPeriod = 60
+      }
+    },
+    {
+      name         = "datadog-agent"
+      image        = "public.ecr.aws/datadog/agent:latest"
+      essential    = false
+      cpu          = 256
+      memory       = 512
+
+      environment = [
+        { name = "DD_SITE", value = var.datadog_site },
+        { name = "DD_DOGSTATSD_NON_LOCAL_TRAFFIC", value = "true" },
+        { name = "DD_APM_ENABLED", value = "true" },
+        { name = "DD_APM_NON_LOCAL_TRAFFIC", value = "true" },
+        { name = "DD_LOGS_ENABLED", value = "true" },
+        { name = "DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL", value = "true" },
+        { name = "DD_ECS_TASK_COLLECTION_ENABLED", value = "true" },
+      ]
+
+      secrets = [
+        { name = "DD_API_KEY", valueFrom = "${aws_secretsmanager_secret.datadog_api_key.arn}" },
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.backend.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "datadog-agent"
+        }
       }
     }
   ])
@@ -688,6 +724,41 @@ resource "aws_cloudwatch_log_group" "backend" {
   tags              = { Name = "${local.name_prefix}-logs" }
 }
 
+resource "aws_cloudwatch_metric_alarm" "high_error_rate" {
+  count               = var.environment == "production" ? 1 : 0
+  alarm_name          = "${local.name_prefix}-high-5xx-rate"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 10
+  alarm_description   = "ALB 5xx errors > 10 in 2 minutes"
+
+  dimensions = {
+    LoadBalancer = aws_lb.main.arn_suffix
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_latency" {
+  count               = var.environment == "production" ? 1 : 0
+  alarm_name          = "${local.name_prefix}-high-latency"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "TargetResponseTime"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "p99"
+  threshold           = 3
+  alarm_description   = "ALB p99 latency > 3s"
+
+  dimensions = {
+    LoadBalancer = aws_lb.main.arn_suffix
+    TargetGroup  = aws_lb_target_group.backend.arn_suffix
+  }
+}
+
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   count               = var.environment == "production" ? 1 : 0
   alarm_name          = "${local.name_prefix}-high-cpu"
@@ -725,6 +796,11 @@ resource "random_password" "jwt" {
 resource "aws_secretsmanager_secret" "stripe" {
   name = "${local.name_prefix}-stripe-key"
   tags = { Name = "${local.name_prefix}-stripe-key" }
+}
+
+resource "aws_secretsmanager_secret" "datadog_api_key" {
+  name = "${local.name_prefix}-datadog-api-key"
+  tags = { Name = "${local.name_prefix}-datadog-api-key" }
 }
 
 # ─── Route53 ─────────────────────────────────────────────────────

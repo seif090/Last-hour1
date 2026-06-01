@@ -49,3 +49,8 @@ output "cloudwatch_log_group" {
   description = "CloudWatch log group"
   value       = aws_cloudwatch_log_group.backend.name
 }
+
+output "github_actions_deploy_role_arn" {
+  description = "IAM role ARN for GitHub Actions CD"
+  value       = aws_iam_role.github_actions_deploy.arn
+}
