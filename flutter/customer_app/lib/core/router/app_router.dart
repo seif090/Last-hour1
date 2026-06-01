@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -10,10 +11,17 @@ import '../../features/orders/presentation/pages/orders_page.dart';
 import '../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../features/orders/presentation/pages/order_track_page.dart';
 
+class _AuthStateNotifier extends ChangeNotifier {
+  final StreamSubscription _sub;
+  _AuthStateNotifier(AuthBloc bloc) : _sub = bloc.stream.listen((_) => notifyListeners());
+  @override
+  void dispose() { _sub.cancel(); super.dispose(); }
+}
+
 GoRouter appRouter(AuthBloc authBloc) {
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: authBloc,
+    refreshListenable: _AuthStateNotifier(authBloc),
     redirect: (context, state) {
       final loggedIn = authBloc.state is Authenticated;
       final onAuth = state.matchedLocation == '/auth';

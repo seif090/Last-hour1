@@ -1,20 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { PaymentProvider, PaymentChargeInput, OrderPaymentInfo, PaymentChargeResult } from './payment-provider.interface';
 
 @Injectable()
-export class StripeProvider {
+export class StripeProvider implements PaymentProvider {
   private readonly logger = new Logger(StripeProvider.name);
   private readonly stripe: Stripe;
 
   constructor(config: ConfigService) {
     this.stripe = new Stripe(config.get<string>('STRIPE_SECRET_KEY')!, {
-      apiVersion: '2024-11-20.acacia' as any,
+      apiVersion: '2025-02-30.acacia' as any,
       maxNetworkRetries: 3,
     });
   }
 
-  async charge(payment: { paymentMethodId?: string; [key: string]: any }, order: any) {
+  async charge(payment: PaymentChargeInput, order: OrderPaymentInfo): Promise<PaymentChargeResult> {
     try {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100), // cents

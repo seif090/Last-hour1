@@ -19,9 +19,6 @@ dependencies:
   geolocator: ^10.1.0
   web_socket_channel: ^2.4.0
   rxdart: ^0.27.7
-  flutter_stripe: ^10.0.0
-  cached_network_image: ^3.4.0
-  intl: ^0.19.0
   connectivity_plus: ^6.0.0
 
   lasthour_shared:
@@ -34,11 +31,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
+  # To use Poppins fonts, download from https://fonts.google.com/specimen/Poppins
+  # and place .ttf files in assets/fonts/, then uncomment below:
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600

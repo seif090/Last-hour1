@@ -15,6 +15,10 @@ class LoadOfferDetail extends OfferDetailEvent {
   final String offerId;
   const LoadOfferDetail(this.offerId);
 }
+class UpdateQuantity extends OfferDetailEvent {
+  final int quantity;
+  const UpdateQuantity(this.quantity);
+}
 class PlaceOrder extends OfferDetailEvent {
   final int quantity;
   const PlaceOrder(this.quantity);
@@ -83,6 +87,7 @@ class OfferDetailBloc extends Bloc<OfferDetailEvent, OfferDetailState> {
         _ws = ws,
         super(OfferDetailInitial()) {
     on<LoadOfferDetail>(_onLoad);
+    on<UpdateQuantity>(_onUpdateQuantity);
     on<PlaceOrder>(_onPlaceOrder);
     on<StockUpdated>(_onStockUpdated);
 
@@ -109,6 +114,12 @@ class OfferDetailBloc extends Bloc<OfferDetailEvent, OfferDetailState> {
       }
     } catch (e) {
       emit(OfferDetailError(e.toString()));
+    }
+  }
+
+  void _onUpdateQuantity(UpdateQuantity event, Emitter<OfferDetailState> emit) {
+    if (state is OfferDetailLoaded) {
+      emit((state as OfferDetailLoaded).copyWith(quantity: event.quantity));
     }
   }
 

@@ -3,12 +3,6 @@ const request = supertest;
 import { app } from './setup';
 
 describe('Offers (e2e)', () => {
-  beforeAll(async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({ email: 'admin@lasthour.app', password: 'admin123' });
-  });
-
   describe('GET /api/v1/offers/nearby', () => {
     it('should return nearby offers with valid coordinates', async () => {
       const res = await request(app.getHttpServer())

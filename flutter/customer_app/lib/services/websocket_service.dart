@@ -5,7 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketService {
   final String baseUrl;
-  final String token;
+  String token;
   WebSocketChannel? _channel;
   final _messageController = BehaviorSubject<Map<String, dynamic>>();
   final _connectionStatus = BehaviorSubject<bool>.seeded(false);
@@ -15,6 +15,16 @@ class WebSocketService {
   Stream<bool> get connectionStatus => _connectionStatus.stream;
 
   WebSocketService({required this.baseUrl, required this.token});
+
+  void updateToken(String newToken) {
+    token = newToken;
+    if (isConnected) {
+      _channel?.sink.close();
+      _channel = null;
+      _connectionStatus.add(false);
+      connect();
+    }
+  }
 
   bool get isConnected => _connectionStatus.value;
 

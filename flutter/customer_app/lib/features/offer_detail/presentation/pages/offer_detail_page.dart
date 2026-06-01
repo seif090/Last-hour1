@@ -162,7 +162,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             Row(
               children: [
                 IconButton(
-                  onPressed: state.quantity > 1 ? () => _bloc.add(PlaceOrder(state.quantity - 1)) : null,
+                  onPressed: state.quantity > 1 ? () => _bloc.add(UpdateQuantity(state.quantity - 1)) : null,
                   icon: const Icon(Icons.remove_circle_outline),
                   iconSize: 32,
                 ),
@@ -171,7 +171,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 const SizedBox(width: 16),
                 IconButton(
                   onPressed: state.quantity < offer.maxPerCustomer && state.quantity < offer.stockRemaining
-                      ? () => _bloc.add(PlaceOrder(state.quantity + 1))
+                      ? () => _bloc.add(UpdateQuantity(state.quantity + 1))
                       : null,
                   icon: const Icon(Icons.add_circle_outline),
                   iconSize: 32,

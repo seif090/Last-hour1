@@ -41,15 +41,10 @@ Future<void> initializeDependencies() async {
     () => PaymentService(sl<ApiClient>()),
   );
 
-  // WebSocket — initialized lazily after auth
-  sl.registerLazySingletonAsync<WebSocketService>(() async {
-    final storage = sl<FlutterSecureStorage>();
-    final token = await storage.read(key: 'access_token');
-    return WebSocketService(
-      baseUrl: ApiConstants.wsUrl,
-      token: token ?? '',
-    );
-  });
+  // WebSocket — initialized with empty token, updated after login via updateToken()
+  sl.registerLazySingleton<WebSocketService>(
+    () => WebSocketService(baseUrl: ApiConstants.wsUrl, token: ''),
+  );
 
   // BLoCs
   sl.registerFactory<AuthBloc>(

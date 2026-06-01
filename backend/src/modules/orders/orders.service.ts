@@ -114,6 +114,15 @@ export class OrdersService {
             totalAmount,
             status: 'pending',
             notes: notes || null,
+            items: {
+              create: {
+                productId: offer.productId,
+                productName: offer.product.name,
+                quantity,
+                unitPrice: Number(offer.discountedPrice),
+                subtotal,
+              },
+            },
           },
         });
 

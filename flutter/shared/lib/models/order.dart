@@ -40,27 +40,30 @@ class Order extends Equatable {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    final store = json['store'] as Map<String, dynamic>?;
+    final offer = json['offer'] as Map<String, dynamic>?;
+    final now = DateTime.now();
     return Order(
-      id: json['id'],
-      orderNumber: json['order_number'],
-      status: json['status'],
-      quantity: json['quantity'] as int,
-      subtotal: (json['subtotal'] as num).toDouble(),
-      serviceFee: (json['service_fee'] as num).toDouble(),
-      totalAmount: (json['total_amount'] as num).toDouble(),
-      currency: json['currency'] ?? 'EGP',
+      id: json['id'] as String? ?? '',
+      orderNumber: json['order_number'] as String? ?? '',
+      status: json['status'] as String? ?? 'pending',
+      quantity: json['quantity'] as int? ?? 1,
+      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
+      serviceFee: (json['service_fee'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency'] as String? ?? 'EGP',
       estimatedReadyAt: json['estimated_ready_at'] as String?,
-      storeName: json['store']?['name'] ?? json['store_name'] ?? '',
-      storeAddress: json['store']?['address_line1'] as String?,
-      storeLat: (json['store']?['lat'] as num?)?.toDouble(),
-      storeLng: (json['store']?['lng'] as num?)?.toDouble(),
-      offerTitle: json['offer']?['title'] ?? json['offer_title'] ?? '',
-      offerImageUrl: json['offer']?['image_url'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      storeName: store?['name'] as String? ?? json['store_name'] as String? ?? '',
+      storeAddress: store?['address_line1'] as String? ?? json['store_address'] as String?,
+      storeLat: (store?['lat'] as num?)?.toDouble() ?? (json['store_lat'] as num?)?.toDouble(),
+      storeLng: (store?['lng'] as num?)?.toDouble() ?? (json['store_lng'] as num?)?.toDouble(),
+      offerTitle: offer?['title'] as String? ?? json['offer_title'] as String? ?? '',
+      offerImageUrl: offer?['image_url'] as String? ?? json['offer_image_url'] as String?,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : now,
       statusHistory: (json['status_history'] as List?)
-              ?.map((h) => StatusHistory.fromJson(h))
+              ?.map((h) => StatusHistory.fromJson(h as Map<String, dynamic>))
               .toList() ??
-          [StatusHistory(status: json['status'], at: DateTime.parse(json['created_at']))],
+          [StatusHistory(status: json['status'] as String? ?? 'pending', at: now)],
     );
   }
 
@@ -76,8 +79,8 @@ class StatusHistory extends Equatable {
 
   factory StatusHistory.fromJson(Map<String, dynamic> json) {
     return StatusHistory(
-      status: json['status'],
-      at: DateTime.parse(json['at'] as String),
+      status: json['status'] as String? ?? 'pending',
+      at: json['at'] != null ? DateTime.parse(json['at'] as String) : DateTime.now(),
     );
   }
 

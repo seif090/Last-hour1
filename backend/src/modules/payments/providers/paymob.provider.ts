@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { PaymentProvider, PaymentChargeInput, OrderPaymentInfo, PaymentChargeResult } from './payment-provider.interface';
 
 interface PaymobChargeRequest {
   paymentMethodId?: string;
@@ -22,7 +23,7 @@ interface PaymobPaymentKeyResponse {
 }
 
 @Injectable()
-export class PaymobProvider {
+export class PaymobProvider implements PaymentProvider {
   private readonly logger = new Logger(PaymobProvider.name);
   private readonly apiKey: string;
   private readonly hmacSecret: string;
@@ -37,9 +38,9 @@ export class PaymobProvider {
   }
 
   async charge(
-    payment: PaymobChargeRequest,
-    order: { id: string; orderNumber: string; totalAmount: number; currency?: string },
-  ) {
+    payment: PaymentChargeInput,
+    order: OrderPaymentInfo,
+  ): Promise<PaymentChargeResult> {
     try {
       const authToken = await this.authenticate();
 

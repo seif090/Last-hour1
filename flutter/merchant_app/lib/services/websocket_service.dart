@@ -5,8 +5,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MerchantWebSocketService {
   final String baseUrl;
-  final String token;
-  final String merchantId;
+  String token;
+  String merchantId;
   WebSocketChannel? _channel;
   final _messageController = BehaviorSubject<Map<String, dynamic>>();
   final _connectionStatus = BehaviorSubject<bool>.seeded(false);
@@ -20,6 +20,17 @@ class MerchantWebSocketService {
     required this.token,
     required this.merchantId,
   });
+
+  void updateCredentials({required String token, required String merchantId}) {
+    this.token = token;
+    this.merchantId = merchantId;
+    if (isConnected) {
+      _channel?.sink.close();
+      _channel = null;
+      _connectionStatus.add(false);
+      connect();
+    }
+  }
 
   bool get isConnected => _connectionStatus.value;
 

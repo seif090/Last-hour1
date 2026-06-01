@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lasthour_shared/models/order.dart';
 import '../bloc/incoming_orders_bloc.dart';
 import '../../../../injector.dart';
 
@@ -74,7 +75,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
     );
   }
 
-  Widget _section(BuildContext context, String title, List<dynamic> orders, bool showActions) {
+  Widget _section(BuildContext context, String title, List<Order> orders, bool showActions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

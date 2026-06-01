@@ -2,6 +2,7 @@ import { Controller, Post, Get, Param, Body, Query, UseGuards, Req } from '@nest
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
+import { CreateReviewDto } from './dto/create-review.dto';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Reviews')
@@ -13,7 +14,7 @@ export class ReviewsController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Submit a review for a completed order' })
-  async create(@Body() dto: any, @Req() req: any) {
+  async create(@Body() dto: CreateReviewDto, @Req() req: any) {
     const review = await this.reviewsService.create(req.user.id, dto);
     return { success: true, data: review };
   }

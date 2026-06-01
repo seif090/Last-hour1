@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lasthour_shared/models/offer.dart';
 import '../bloc/merchant_offers_bloc.dart';
 import '../widgets/merchant_offer_tile.dart';
 import '../../../../injector.dart';
@@ -93,7 +94,7 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
     );
   }
 
-  void _showOfferDetail(BuildContext context, dynamic offer) {
+  void _showOfferDetail(BuildContext context, Offer offer) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -134,7 +135,7 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
     );
   }
 
-  void _showStockDialog(BuildContext context, dynamic offer) {
+  void _showStockDialog(BuildContext context, Offer offer) {
     final ctrl = TextEditingController(text: '${offer.stockRemaining}');
     showDialog(
       context: context,

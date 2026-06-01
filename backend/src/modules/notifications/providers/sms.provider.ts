@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SmsProvider {
   private readonly logger = new Logger(SmsProvider.name);
-
-  constructor(private config: ConfigService) {}
 
   async send(phone: string, message: string) {
     try {

@@ -51,27 +51,29 @@ class Offer extends Equatable {
   int get expiresInSeconds => endTime.difference(DateTime.now()).inSeconds;
 
   factory Offer.fromJson(Map<String, dynamic> json) {
+    final store = json['store'] as Map<String, dynamic>?;
+    final product = json['product'] as Map<String, dynamic>?;
     return Offer(
-      id: json['id'] ?? json['offer_id'],
-      title: json['title'],
-      discountedPrice: (json['discounted_price'] as num).toDouble(),
-      originalPrice: (json['original_price'] as num).toDouble(),
-      stockRemaining: json['stock_remaining'] as int,
-      stockInitial: json['stock_initial'] as int,
-      endTime: DateTime.parse(json['end_time'] as String),
+      id: json['id'] as String? ?? json['offer_id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      discountedPrice: (json['discounted_price'] as num?)?.toDouble() ?? 0.0,
+      originalPrice: (json['original_price'] as num?)?.toDouble() ?? 0.0,
+      stockRemaining: json['stock_remaining'] as int? ?? 0,
+      stockInitial: json['stock_initial'] as int? ?? 0,
+      endTime: json['end_time'] != null ? DateTime.parse(json['end_time'] as String) : DateTime.now(),
       maxPerCustomer: json['max_per_customer'] as int? ?? 5,
       imageUrl: json['image_url'] as String?,
-      storeId: json['store_id'] ?? json['store']['id'],
-      storeName: json['store_name'] ?? json['store']['name'],
-      storeSlug: json['store_slug'] ?? json['store']['slug'] ?? '',
+      storeId: json['store_id'] as String? ?? store?['id'] as String? ?? '',
+      storeName: json['store_name'] as String? ?? store?['name'] as String? ?? '',
+      storeSlug: json['store_slug'] as String? ?? store?['slug'] as String? ?? '',
       cuisineType: json['cuisine_type'] as String?,
       ratingAvg: (json['rating_avg'] as num?)?.toDouble() ?? 0,
       ratingCount: json['rating_count'] as int? ?? 0,
       distanceM: (json['distance_m'] as num?)?.toDouble() ?? 0,
-      productName: json['product_name'] ?? json['product']['name'],
-      category: json['category'] ?? json['product']['category'],
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
+      productName: json['product_name'] as String? ?? product?['name'] as String? ?? '',
+      category: json['category'] as String? ?? product?['category'] as String? ?? '',
+      lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+      lng: (json['lng'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

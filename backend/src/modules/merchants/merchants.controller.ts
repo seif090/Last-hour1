@@ -4,6 +4,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { MerchantsService } from './merchants.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { RegisterMerchantDto } from './dto/register-merchant.dto';
 
 @ApiTags('Merchant')
 @ApiBearerAuth()
@@ -16,7 +17,7 @@ export class MerchantsController {
   @Post('register')
   @Roles('customer')
   @ApiOperation({ summary: 'Register as a merchant' })
-  async register(@Body() dto: any, @Req() req: any) {
+  async register(@Body() dto: RegisterMerchantDto, @Req() req: any) {
     return this.merchantsService.register(req.user.id, dto);
   }
 

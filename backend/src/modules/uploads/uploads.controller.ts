@@ -1,4 +1,5 @@
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { S3Service } from './uploads.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -12,6 +13,7 @@ class PresignedUrlDto {
 export class UploadsController {
   constructor(private readonly s3: S3Service) {}
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('presigned-url')
   async presignedUrl(@Req() req: any, @Body() dto: PresignedUrlDto) {

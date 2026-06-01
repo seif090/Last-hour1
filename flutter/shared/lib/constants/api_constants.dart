@@ -2,7 +2,7 @@ class ApiConstants {
   static const String baseUrl = 'http://localhost:3000';
   static const String apiPrefix = '/api/v1';
   static const String wsUrl = 'ws://localhost:3000/ws';
-static const String wsPath = '/ws';
+  static const String wsPath = '/ws';
 
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 15);

@@ -4,6 +4,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CreateProductDto } from './dto/create-product.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class ProductsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a product' })
-  async create(@Body() dto: any, @Req() req: any) {
+  async create(@Body() dto: CreateProductDto, @Req() req: any) {
     return this.productsService.create(req.user.storeId, dto);
   }
 
