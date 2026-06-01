@@ -1,4 +1,5 @@
-const request = require('supertest');
+import supertest from 'supertest';
+const request = supertest;
 import { app } from './setup';
 
 describe('Offers (e2e)', () => {

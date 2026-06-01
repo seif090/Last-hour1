@@ -1,13 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, BadRequestException } from '@nestjs/common';
+import { getQueueToken } from '@nestjs/bull';
 import { OrdersService } from '../../src/modules/orders/orders.service';
 import { PrismaService } from '../../src/database/prisma.service';
 import { RedisService } from '../../src/redis/redis.service';
+import { PaymentsService } from '../../src/modules/payments/payments.service';
+import { OffersGateway } from '../../src/modules/offers/offers.gateway';
+import { NotificationsService } from '../../src/modules/notifications/notifications.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: any;
   let redis: any;
+  let paymentsService: any;
+  let offersGateway: any;
+  let notificationsService: any;
+  let orderTimeoutQueue: any;
 
   const mockOffer = {
     id: 'offer-1',
@@ -34,9 +42,43 @@ describe('OrdersService', () => {
           orderNumber: 'LH-ABC123',
           status: 'confirmed',
           quantity: 2,
+          unitPrice: 15.00,
+          subtotal: 30.00,
+          serviceFee: 1.50,
           totalAmount: 31.50,
+          currency: 'EGP',
+          createdAt: new Date(),
         }),
         findUnique: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue(null),
+        update: jest.fn().mockImplementation((args: any) => Promise.resolve({
+          id: args.where?.id || 'order-1',
+          orderNumber: 'LH-ABC123',
+          status: args.data?.status || 'confirmed',
+          quantity: 2,
+          unitPrice: 15.00,
+          subtotal: 30.00,
+          serviceFee: 1.50,
+          totalAmount: 31.50,
+          currency: 'EGP',
+          createdAt: new Date(),
+        })),
+      },
+      payment: {
+        create: jest.fn().mockResolvedValue({
+          id: 'pay-1',
+          provider: 'stripe',
+          amount: 31.50,
+          status: 'captured',
+          metadata: {},
+        }),
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'pay-1',
+          provider: 'stripe',
+          amount: 31.50,
+          status: 'captured',
+          metadata: {},
+        }),
       },
       $transaction: jest.fn((fn: any) => fn(prisma)),
       $queryRawUnsafe: jest.fn().mockResolvedValue([{ success: true, remaining: 48 }]),
@@ -48,11 +90,35 @@ describe('OrdersService', () => {
       getStock: jest.fn().mockResolvedValue(48),
     };
 
+    paymentsService = {
+      charge: jest.fn().mockResolvedValue({
+        providerTxId: 'ch_test',
+        status: 'captured',
+      }),
+    };
+
+    offersGateway = {
+      broadcastStockUpdate: jest.fn(),
+      broadcastOrderStatus: jest.fn(),
+    };
+
+    notificationsService = {
+      onOrderConfirmed: jest.fn(),
+    };
+
+    orderTimeoutQueue = {
+      add: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
         { provide: PrismaService, useValue: prisma },
         { provide: RedisService, useValue: redis },
+        { provide: PaymentsService, useValue: paymentsService },
+        { provide: OffersGateway, useValue: offersGateway },
+        { provide: NotificationsService, useValue: notificationsService },
+        { provide: getQueueToken('order-timeout'), useValue: orderTimeoutQueue },
       ],
     }).compile();
 
@@ -60,15 +126,92 @@ describe('OrdersService', () => {
   });
 
   describe('placeOrder', () => {
-    it('should place order successfully', async () => {
+    it('should place order successfully via Stripe (synchronous capture)', async () => {
       const result = await service.placeOrder(
-        { offerId: 'offer-1', quantity: 2, payment: { provider: 'stripe', paymentMethodId: 'pm_test' } },
+        {
+          offerId: 'offer-1',
+          quantity: 2,
+          payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+        },
         'user-1',
       );
 
       expect(result).toBeDefined();
-      expect(result.status).toBe('confirmed');
+      expect(result.order.status).toBe('confirmed');
+      expect(result.payment.status).toBe('captured');
       expect(redis.decrementStock).toHaveBeenCalledWith('offer-1', 2, expect.any(Number));
+      expect(paymentsService.charge).toHaveBeenCalledWith(
+        { provider: 'stripe', paymentMethodId: 'pm_test' },
+        expect.objectContaining({ totalAmount: 31.5 }),
+      );
+      expect(offersGateway.broadcastStockUpdate).toHaveBeenCalledWith('offer-1', 'store-1', 48);
+      expect(offersGateway.broadcastOrderStatus).toHaveBeenCalledWith('order-1', 'user-1', 'confirmed');
+      expect(notificationsService.onOrderConfirmed).toHaveBeenCalledWith('order-1', 'user-1');
+    });
+
+    it('should place order successfully via Paymob (asynchronous pending redirection)', async () => {
+      // Mock Paymob response
+      paymentsService.charge.mockResolvedValue({
+        providerTxId: 'tok_test',
+        status: 'pending',
+        iframeUrl: 'https://paymob.iframe.url',
+        paymentKey: 'tok_test',
+      });
+
+      prisma.order.create.mockResolvedValue({
+        id: 'order-1',
+        orderNumber: 'LH-ABC123',
+        status: 'pending',
+        quantity: 2,
+        unitPrice: 15.00,
+        subtotal: 30.00,
+        serviceFee: 1.50,
+        totalAmount: 31.50,
+        currency: 'EGP',
+        createdAt: new Date(),
+      });
+
+      prisma.payment.create.mockResolvedValue({
+        id: 'pay-1',
+        provider: 'paymob',
+        amount: 31.50,
+        status: 'pending',
+        metadata: { iframeUrl: 'https://paymob.iframe.url' },
+      });
+
+      const result = await service.placeOrder(
+        {
+          offerId: 'offer-1',
+          quantity: 2,
+          payment: { provider: 'paymob', paymentMethodId: 'pm_test' },
+        },
+        'user-1',
+      );
+
+      expect(result).toBeDefined();
+      expect(result.order.status).toBe('pending');
+      expect(result.payment.status).toBe('pending');
+      expect(result.payment.iframeUrl).toBe('https://paymob.iframe.url');
+      expect(orderTimeoutQueue.add).toHaveBeenCalledWith(
+        'confirm-timeout',
+        { orderId: 'order-1' },
+        { delay: 600000 },
+      );
+    });
+
+    it('should throw ConflictException if duplicate active order exists', async () => {
+      prisma.order.findFirst.mockResolvedValue({ id: 'existing-order' });
+
+      await expect(
+        service.placeOrder(
+          {
+            offerId: 'offer-1',
+            quantity: 2,
+            payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should throw when offer expired', async () => {
@@ -79,7 +222,11 @@ describe('OrdersService', () => {
 
       await expect(
         service.placeOrder(
-          { offerId: 'offer-1', quantity: 2, payment: { provider: 'stripe', paymentMethodId: 'pm_test' } },
+          {
+            offerId: 'offer-1',
+            quantity: 2,
+            payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+          },
           'user-1',
         ),
       ).rejects.toThrow(BadRequestException);
@@ -90,7 +237,11 @@ describe('OrdersService', () => {
 
       await expect(
         service.placeOrder(
-          { offerId: 'offer-1', quantity: 5, payment: { provider: 'stripe', paymentMethodId: 'pm_test' } },
+          {
+            offerId: 'offer-1',
+            quantity: 5,
+            payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+          },
           'user-1',
         ),
       ).rejects.toThrow(ConflictException);
@@ -99,7 +250,11 @@ describe('OrdersService', () => {
     it('should throw when exceeding max per customer', async () => {
       await expect(
         service.placeOrder(
-          { offerId: 'offer-1', quantity: 10, payment: { provider: 'stripe', paymentMethodId: 'pm_test' } },
+          {
+            offerId: 'offer-1',
+            quantity: 10,
+            payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+          },
           'user-1',
         ),
       ).rejects.toThrow(BadRequestException);
@@ -110,7 +265,11 @@ describe('OrdersService', () => {
 
       await expect(
         service.placeOrder(
-          { offerId: 'offer-1', quantity: 2, payment: { provider: 'stripe', paymentMethodId: 'pm_test' } },
+          {
+            offerId: 'offer-1',
+            quantity: 2,
+            payment: { provider: 'stripe', paymentMethodId: 'pm_test' },
+          },
           'user-1',
         ),
       ).rejects.toThrow('DB error');

@@ -10,7 +10,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [postgis, uuid_ossp, pgcrypto]
+  extensions = [postgis, uuid_ossp, pgcrypto] /// Note: uuid_ossp maps to PG extension 'uuid-ossp'
 }
 
 // ─── Enums ──────────────────────────────────────────────────────

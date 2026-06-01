@@ -13,6 +13,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { UsersModule } from './modules/users/users.module';
 import { DeviceTokensModule } from './modules/device-tokens/device-tokens.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { HealthModule } from './modules/health/health.module';
@@ -74,6 +75,7 @@ import * as Joi from 'joi';
     DeviceTokensModule,
     UploadsModule,
     QueueModule,
+    UsersModule,
   ],
   providers: [
     {

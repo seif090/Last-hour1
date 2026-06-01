@@ -1,9 +1,19 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { OffersGateway } from '../offers/offers.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class MerchantsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(MerchantsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly offersGateway: OffersGateway,
+    private readonly notificationsService: NotificationsService,
+    private readonly redis: RedisService,
+  ) {}
 
   async register(userId: string, data: {
     businessName: string;
@@ -149,5 +159,167 @@ export class MerchantsService {
         status: stockRemaining === 0 ? 'sold_out' : 'active',
       },
     });
+  }
+
+  /**
+   * List incoming orders for merchant stores
+   */
+  async listOrders(merchantId: string, status?: string, page = 1, limit = 20) {
+    const stores = await this.prisma.store.findMany({
+      where: { merchantId },
+      select: { id: true },
+    });
+    const storeIds = stores.map((s) => s.id);
+
+    const where: any = { storeId: { in: storeIds } };
+    if (status) where.status = status as any;
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, email: true, phone: true } },
+          store: { select: { id: true, name: true } },
+          offer: { select: { id: true, title: true, imageUrl: true } },
+          payment: { select: { id: true, provider: true, status: true, amount: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      orders: orders.map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        status: o.status,
+        quantity: o.quantity,
+        totalAmount: Number(o.totalAmount),
+        createdAt: o.createdAt,
+        customer: o.customer,
+        store: o.store,
+        offer: o.offer,
+        payment: o.payment
+          ? {
+              id: o.payment.id,
+              provider: o.payment.provider,
+              status: o.payment.status,
+              amount: Number(o.payment.amount),
+            }
+          : null,
+      })),
+      meta: { page, limit, total, hasMore: page * limit < total },
+    };
+  }
+
+  /**
+   * Update state of an order with notification & WebSocket dispatching
+   */
+  async updateOrderStatus(merchantId: string, orderId: string, status: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        store: { select: { id: true, name: true, merchantId: true } },
+        offer: true,
+      },
+    });
+
+    if (!order || order.store.merchantId !== merchantId) {
+      throw new BadRequestException('Order not found');
+    }
+
+    const currentStatus = order.status;
+    const targetStatus = status as any;
+
+    // State machine check
+    const validTransitions: Record<string, string[]> = {
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['preparing', 'cancelled'],
+      preparing: ['ready', 'cancelled'],
+      ready: ['picked_up', 'cancelled'],
+      picked_up: [],
+      cancelled: [],
+      refunded: [],
+    };
+
+    if (!validTransitions[currentStatus]?.includes(targetStatus)) {
+      throw new BadRequestException(
+        `Cannot transition order from status "${currentStatus}" to "${targetStatus}"`,
+      );
+    }
+
+    // 1. Transactionally update DB
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      const data: any = { status: targetStatus };
+
+      if (targetStatus === 'picked_up') {
+        data.pickedUpAt = new Date();
+      } else if (targetStatus === 'cancelled') {
+        data.cancelledAt = new Date();
+        data.cancelReason = 'Cancelled by merchant';
+
+        // Restore postgres stock
+        await tx.offer.update({
+          where: { id: order.offerId },
+          data: {
+            stockRemaining: { increment: order.quantity },
+          },
+        });
+      }
+
+      return tx.order.update({
+        where: { id: orderId },
+        data,
+      });
+    });
+
+    // 2. Post-Transaction actions
+    if (targetStatus === 'cancelled') {
+      try {
+        // Restore Redis stock
+        const currentRedis = await this.redis.getStock(order.offerId);
+        if (currentRedis !== null) {
+          await this.redis.initStock(order.offerId, currentRedis + order.quantity);
+        } else {
+          const freshOffer = await this.prisma.offer.findUnique({
+            where: { id: order.offerId },
+          });
+          if (freshOffer) {
+            await this.redis.initStock(order.offerId, Number(freshOffer.stockRemaining));
+          }
+        }
+
+        // Broadcast Redis stock update via WebSockets
+        const freshRedis = await this.redis.getStock(order.offerId);
+        this.offersGateway.broadcastStockUpdate(
+          order.offerId,
+          order.storeId,
+          freshRedis !== null ? freshRedis : order.offer.stockRemaining + order.quantity,
+        );
+      } catch (err) {
+        this.logger.error(`Failed to restore Redis stock for cancellation of order ${orderId}`, err);
+      }
+    }
+
+    // Broadcast status change via WebSockets
+    this.offersGateway.broadcastOrderStatus(
+      orderId,
+      order.customerId,
+      targetStatus,
+      updatedOrder.estimatedReadyAt || undefined,
+    );
+
+    // Send push notification if marked ready for pickup
+    if (targetStatus === 'ready') {
+      await this.notificationsService.onOrderReady(
+        orderId,
+        order.store.name,
+        order.customerId,
+      );
+    }
+
+    return updatedOrder;
   }
 }

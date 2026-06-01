@@ -58,15 +58,26 @@ export class MerchantsController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    return { orders: [], meta: { page, limit, total: 0, hasMore: false } };
+    return this.merchantsService.listOrders(
+      req.user.merchantId,
+      status,
+      +page,
+      +limit,
+    );
   }
 
   @Patch('orders/:orderId/status')
   @ApiOperation({ summary: 'Update order status' })
   async updateOrderStatus(
-    @Param('orderId') _orderId: string,
-    @Body('status') _status: string,
+    @Param('orderId') orderId: string,
+    @Body('status') status: string,
+    @Req() req: any,
   ) {
-    return { success: true };
+    const order = await this.merchantsService.updateOrderStatus(
+      req.user.merchantId,
+      orderId,
+      status,
+    );
+    return { success: true, data: order };
   }
 }
