@@ -5,6 +5,8 @@ import 'features/offers/presentation/pages/merchant_offers_page.dart';
 import 'features/orders/presentation/pages/merchant_incoming_orders_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injector.dart';
+import 'package:lasthour_shared/src/services/connectivity_service.dart';
+import 'package:lasthour_shared/src/widgets/offline_banner.dart';
 
 class LastHourMerchantApp extends StatelessWidget {
   const LastHourMerchantApp({super.key});
@@ -37,6 +39,21 @@ class LastHourMerchantApp extends StatelessWidget {
             ),
           ),
         ),
+        builder: (context, child) {
+          return StreamBuilder<bool>(
+            stream: sl<ConnectivityService>().connectivityStream,
+            initialData: sl<ConnectivityService>().isConnected,
+            builder: (context, snapshot) {
+              final isOffline = snapshot.data == false;
+              return Column(
+                children: [
+                  if (isOffline) const OfflineBanner(),
+                  Expanded(child: child ?? const SizedBox.shrink()),
+                ],
+              );
+            },
+          );
+        },
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is Unauthenticated || state is AuthInitial) {

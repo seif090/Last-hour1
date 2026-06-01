@@ -110,6 +110,101 @@ export class AdminService {
     return offer;
   }
 
+  async listUsers(page = 1, limit = 20, role?: string) {
+    const where: any = {};
+    if (role) where.role = role;
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true, email: true, phone: true, role: true, isActive: true,
+          createdAt: true, updatedAt: true,
+          merchant: { select: { id: true, businessName: true, isVerified: true } },
+          _count: { select: { customerOrders: true, reviews: true } },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { users, meta: { page, limit, total, hasMore: page * limit < total } };
+  }
+
+  async toggleUserBan(userId: string, banned: boolean) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: !banned },
+      select: { id: true, email: true, isActive: true },
+    });
+    this.logger.log(`User ${userId} ${banned ? 'banned' : 'unbanned'}`);
+    return user;
+  }
+
+  async listOrders(page = 1, limit = 20, status?: string) {
+    const where: any = {};
+    if (status) where.status = status;
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, email: true } },
+          offer: {
+            select: { id: true, discountedPrice: true, product: { select: { name: true } } },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return { orders, meta: { page, limit, total, hasMore: page * limit < total } };
+  }
+
+  async getRevenueAnalytics(days = 30) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        createdAt: { gte: since },
+        status: { notIn: ['cancelled', 'refunded'] },
+      },
+      select: { totalAmount: true, createdAt: true, status: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const dailyMap = new Map<string, { revenue: number; orders: number; avgOrder: number }>();
+    for (const order of orders) {
+      const day = order.createdAt.toISOString().slice(0, 10);
+      const entry = dailyMap.get(day) || { revenue: 0, orders: 0, avgOrder: 0 };
+      entry.revenue += Number(order.totalAmount);
+      entry.orders += 1;
+      entry.avgOrder = entry.revenue / entry.orders;
+      dailyMap.set(day, entry);
+    }
+
+    const daily = Array.from(dailyMap.entries()).map(([date, data]) => ({
+      date,
+      ...data,
+    }));
+
+    return {
+      totalRevenue: orders.reduce((sum, o) => sum + Number(o.totalAmount), 0),
+      totalOrders: orders.length,
+      avgOrderValue: orders.length > 0
+        ? orders.reduce((sum, o) => sum + Number(o.totalAmount), 0) / orders.length
+        : 0,
+      period: { days },
+      daily,
+    };
+  }
+
   async getSystemHealth() {
     const dbStart = Date.now();
     await this.prisma.$queryRawUnsafe('SELECT 1');

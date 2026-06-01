@@ -4,6 +4,8 @@ import 'core/router/app_router.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/home/presentation/bloc/offers_bloc.dart';
 import 'injector.dart';
+import 'package:lasthour_shared/src/services/connectivity_service.dart';
+import 'package:lasthour_shared/src/widgets/offline_banner.dart';
 
 class LastHourCustomerApp extends StatelessWidget {
   const LastHourCustomerApp({super.key});
@@ -22,6 +24,21 @@ class LastHourCustomerApp extends StatelessWidget {
         routerConfig: appRouter(authBloc),
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
+        builder: (context, child) {
+          return StreamBuilder<bool>(
+            stream: sl<ConnectivityService>().connectivityStream,
+            initialData: sl<ConnectivityService>().isConnected,
+            builder: (context, snapshot) {
+              final isOffline = snapshot.data == false;
+              return Column(
+                children: [
+                  if (isOffline) const OfflineBanner(),
+                  Expanded(child: child ?? const SizedBox.shrink()),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -13,6 +13,8 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { DeviceTokensModule } from './modules/device-tokens/device-tokens.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './redis/redis.module';
 import { DatabaseModule } from './database/database.module';
@@ -69,6 +71,8 @@ import * as Joi from 'joi';
     OffersModule,
     OrdersModule,
     PaymentsModule,
+    DeviceTokensModule,
+    UploadsModule,
     QueueModule,
   ],
   providers: [

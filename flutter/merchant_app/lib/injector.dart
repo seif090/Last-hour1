@@ -5,6 +5,7 @@ import 'services/websocket_service.dart';
 import 'features/offers/presentation/bloc/merchant_offers_bloc.dart';
 import 'features/orders/presentation/bloc/incoming_orders_bloc.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lasthour_shared/src/services/connectivity_service.dart';
 
 final sl = GetIt.instance;
 
@@ -13,8 +14,13 @@ Future<void> initializeMerchantDependencies() async {
     () => const FlutterSecureStorage(),
   );
 
+  // Connectivity
+  final connectivity = ConnectivityService();
+  connectivity.initialize();
+  sl.registerLazySingleton<ConnectivityService>(() => connectivity);
+
   sl.registerLazySingleton<ApiClient>(
-    () => ApiClient(baseUrl: 'http://localhost:3000'),
+    () => ApiClient(baseUrl: 'http://localhost:3000', connectivity: sl<ConnectivityService>()),
   );
 
   sl.registerLazySingleton<MerchantWebSocketService>(

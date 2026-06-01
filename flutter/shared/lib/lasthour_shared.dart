@@ -8,3 +8,6 @@ export 'models/order.dart';
 export 'models/store.dart';
 export 'models/user.dart';
 export 'constants/api_constants.dart';
+export 'src/exceptions/network_exception.dart';
+export 'src/services/connectivity_service.dart';
+export 'src/widgets/offline_banner.dart';

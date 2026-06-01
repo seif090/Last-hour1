@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../injector.dart';
+import 'package:lasthour_shared/src/services/connectivity_service.dart';
+import 'package:lasthour_shared/src/widgets/offline_banner.dart';
 
 class HomeShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -8,7 +11,19 @@ class HomeShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: StreamBuilder<bool>(
+        stream: sl<ConnectivityService>().connectivityStream,
+        initialData: sl<ConnectivityService>().isConnected,
+        builder: (context, snapshot) {
+          final isOffline = snapshot.data == false;
+          return Column(
+            children: [
+              if (isOffline) const OfflineBanner(),
+              Expanded(child: navigationShell),
+            ],
+          );
+        },
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {

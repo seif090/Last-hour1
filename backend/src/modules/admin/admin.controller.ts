@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -18,6 +18,39 @@ export class AdminController {
   async getStats() {
     const data = await this.adminService.getPlatformStats();
     return { success: true, data };
+  }
+
+  @Get('users')
+  @ApiOperation({ summary: 'List all users' })
+  async listUsers(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+    @Query('role') role?: string,
+  ) {
+    return this.adminService.listUsers(+page, +limit, role);
+  }
+
+  @Patch('users/:id/ban')
+  @ApiOperation({ summary: 'Ban/unban a user' })
+  async toggleBan(@Param('id') id: string, @Body('banned') banned: boolean) {
+    const data = await this.adminService.toggleUserBan(id, banned);
+    return { success: true, data };
+  }
+
+  @Get('orders')
+  @ApiOperation({ summary: 'List all orders' })
+  async listOrders(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+    @Query('status') status?: string,
+  ) {
+    return this.adminService.listOrders(+page, +limit, status);
+  }
+
+  @Get('revenue')
+  @ApiOperation({ summary: 'Revenue analytics' })
+  async getRevenue(@Query('days') days = 30) {
+    return this.adminService.getRevenueAnalytics(+days);
   }
 
   @Get('merchants')

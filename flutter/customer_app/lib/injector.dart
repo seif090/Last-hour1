@@ -9,6 +9,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/home/presentation/bloc/offers_bloc.dart';
 import 'features/orders/presentation/bloc/order_track_bloc.dart';
 import 'package:lasthour_shared/constants/api_constants.dart';
+import 'package:lasthour_shared/src/services/connectivity_service.dart';
 
 final sl = GetIt.instance;
 
@@ -18,9 +19,14 @@ Future<void> initializeDependencies() async {
     () => const FlutterSecureStorage(),
   );
 
+  // Connectivity
+  final connectivity = ConnectivityService();
+  connectivity.initialize();
+  sl.registerLazySingleton<ConnectivityService>(() => connectivity);
+
   // Services
   sl.registerLazySingleton<ApiClient>(
-    () => ApiClient(baseUrl: ApiConstants.baseUrl),
+    () => ApiClient(baseUrl: ApiConstants.baseUrl, connectivity: sl<ConnectivityService>()),
   );
 
   sl.registerLazySingleton<LocationService>(

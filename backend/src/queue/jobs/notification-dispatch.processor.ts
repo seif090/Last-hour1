@@ -1,6 +1,8 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
+import { FcmProvider } from '../../modules/notifications/providers/fcm.provider';
+import { DeviceTokensService } from '../../modules/device-tokens/device-tokens.service';
 
 export interface NotificationPayload {
   userId: string;
@@ -14,21 +16,24 @@ export interface NotificationPayload {
 export class NotificationDispatchProcessor {
   private readonly logger = new Logger(NotificationDispatchProcessor.name);
 
+  constructor(
+    private readonly fcmProvider: FcmProvider,
+    private readonly deviceTokens: DeviceTokensService,
+  ) {}
+
   @Process('push')
   async handlePushNotification(job: Job<NotificationPayload>) {
-    const { userId, type, title, body } = job.data;
+    const { userId, type, title, body, data } = job.data;
 
     try {
-      // Firebase Cloud Messaging integration point
+      const tokens = await this.deviceTokens.getActiveTokens([userId]);
+      if (tokens.length === 0) {
+        this.logger.log(`No device tokens for user ${userId}, skipping push`);
+        return;
+      }
+
+      await this.fcmProvider.sendMulticast(tokens, { title, body, data });
       this.logger.log(`Push to ${userId}: [${type}] ${title} — ${body}`);
-
-      // const message = {
-      //   notification: { title, body },
-      //   data: data ?? {},
-      //   token: await this.getDeviceToken(userId),
-      // };
-      // await admin.messaging().send(message);
-
       job.progress(100);
     } catch (err: any) {
       this.logger.error(`Push notification failed for user ${userId}: ${err.message}`);
@@ -40,7 +45,6 @@ export class NotificationDispatchProcessor {
   async handleEmailNotification(job: Job<NotificationPayload>) {
     const { userId, type, title } = job.data;
 
-    // SendGrid / SES integration point
     this.logger.log(`Email to ${userId}: [${type}] ${title}`);
 
     job.progress(100);
@@ -50,7 +54,6 @@ export class NotificationDispatchProcessor {
   async handleSmsNotification(job: Job<NotificationPayload>) {
     const { userId, type, body } = job.data;
 
-    // Twilio integration point
     this.logger.log(`SMS to ${userId}: [${type}] ${body}`);
 
     job.progress(100);
