@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/merchant_offers_bloc.dart';
 import '../widgets/merchant_offer_tile.dart';
-import '../../../services/api_client.dart';
+import '../../../../injector.dart';
 
 class MerchantOffersPage extends StatefulWidget {
   const MerchantOffersPage({super.key});
@@ -17,7 +17,7 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
   @override
   void initState() {
     super.initState();
-    _bloc = MerchantOffersBloc(api: ApiClient(baseUrl: 'http://localhost:3000'));
+    _bloc = sl<MerchantOffersBloc>();
     _bloc.add(const LoadMerchantOffers());
   }
 

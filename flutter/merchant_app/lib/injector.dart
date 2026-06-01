@@ -1,0 +1,42 @@
+import 'package:get_it/get_it.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'services/api_client.dart';
+import 'services/websocket_service.dart';
+import 'features/offers/presentation/bloc/merchant_offers_bloc.dart';
+import 'features/orders/presentation/bloc/incoming_orders_bloc.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+
+final sl = GetIt.instance;
+
+Future<void> initializeMerchantDependencies() async {
+  sl.registerLazySingleton<FlutterSecureStorage>(
+    () => const FlutterSecureStorage(),
+  );
+
+  sl.registerLazySingleton<ApiClient>(
+    () => ApiClient(baseUrl: 'http://localhost:3000'),
+  );
+
+  sl.registerLazySingleton<MerchantWebSocketService>(
+    () => MerchantWebSocketService(
+      baseUrl: 'ws://localhost:3000',
+      token: '',
+      merchantId: '',
+    ),
+  );
+
+  sl.registerFactory<AuthBloc>(
+    () => AuthBloc(api: sl<ApiClient>(), storage: sl<FlutterSecureStorage>()),
+  );
+
+  sl.registerFactory<MerchantOffersBloc>(
+    () => MerchantOffersBloc(api: sl<ApiClient>()),
+  );
+
+  sl.registerFactory<IncomingOrdersBloc>(
+    () => IncomingOrdersBloc(
+      api: sl<ApiClient>(),
+      ws: sl<MerchantWebSocketService>(),
+    ),
+  );
+}

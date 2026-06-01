@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/incoming_orders_bloc.dart';
-import '../../../services/api_client.dart';
-import '../../../services/websocket_service.dart';
+import '../../../../injector.dart';
 
 class MerchantIncomingOrdersPage extends StatefulWidget {
   const MerchantIncomingOrdersPage({super.key});
@@ -17,14 +16,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
   @override
   void initState() {
     super.initState();
-    _bloc = IncomingOrdersBloc(
-      api: ApiClient(baseUrl: 'http://localhost:3000'),
-      ws: MerchantWebSocketService(
-        baseUrl: 'ws://localhost:3000',
-        token: '',  // Will be set after auth
-        merchantId: '',
-      ),
-    );
+    _bloc = sl<IncomingOrdersBloc>();
     _bloc.add(const LoadIncomingOrders());
   }
 

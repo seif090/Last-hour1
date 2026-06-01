@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/hourly_chart.dart';
+import '../../../injector.dart';
 import '../../../services/api_client.dart';
 
 class MerchantDashboardPage extends StatefulWidget {
@@ -11,7 +12,7 @@ class MerchantDashboardPage extends StatefulWidget {
 }
 
 class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
-  final _api = ApiClient(baseUrl: 'http://localhost:3000');
+  final _api = sl<ApiClient>();
   Map<String, dynamic>? _dashboard;
   bool _loading = true;
 
