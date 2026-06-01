@@ -1,35 +1,28 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../services/api_client.dart';
-import '../../../services/websocket_service.dart';
+import 'package:lasthour_shared/models/order.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 
-// ─── Events ─────────────────────────────────────────────────────
 abstract class OrderTrackEvent extends Equatable {
   const OrderTrackEvent();
   @override
   List<Object?> get props => [];
 }
 
-class LoadOrder extends OrderTrackEvent {
+class LoadOrders extends OrderTrackEvent {}
+class LoadOrderDetail extends OrderTrackEvent {
   final String orderId;
-  const LoadOrder(this.orderId);
+  const LoadOrderDetail(this.orderId);
 }
-
 class OrderStatusUpdated extends OrderTrackEvent {
-  final String status;
-  final DateTime? estimatedReadyAt;
-  const OrderStatusUpdated(this.status, this.estimatedReadyAt);
-}
-
-class StartTracking extends OrderTrackEvent {
   final String orderId;
-  const StartTracking(this.orderId);
+  final String status;
+  final String? estimatedReadyAt;
+  const OrderStatusUpdated(this.orderId, this.status, {this.estimatedReadyAt});
 }
 
-class StopTracking extends OrderTrackEvent {}
-
-// ─── State ──────────────────────────────────────────────────────
 abstract class OrderTrackState extends Equatable {
   const OrderTrackState();
   @override
@@ -37,127 +30,73 @@ abstract class OrderTrackState extends Equatable {
 }
 
 class OrderTrackInitial extends OrderTrackState {}
-
-class OrderTrackLoading extends OrderTrackState {}
-
-class OrderTrackLoaded extends OrderTrackState {
-  final String orderId;
-  final String orderNumber;
-  final String status;
-  final List<StatusHistoryItem> statusHistory;
-  final DateTime? estimatedReadyAt;
-  final String storeName;
-  final String storeAddress;
-  final double storeLat;
-  final double storeLng;
-  final int quantity;
-  final double totalAmount;
-
-  const OrderTrackLoaded({
-    required this.orderId,
-    required this.orderNumber,
-    required this.status,
-    required this.statusHistory,
-    this.estimatedReadyAt,
-    required this.storeName,
-    required this.storeAddress,
-    required this.storeLat,
-    required this.storeLng,
-    required this.quantity,
-    required this.totalAmount,
-  });
-
-  OrderTrackLoaded copyWith({
-    String? status,
-    List<StatusHistoryItem>? statusHistory,
-    DateTime? estimatedReadyAt,
-  }) {
-    return OrderTrackLoaded(
-      orderId: orderId,
-      orderNumber: orderNumber,
-      status: status ?? this.status,
-      statusHistory: statusHistory ?? this.statusHistory,
-      estimatedReadyAt: estimatedReadyAt ?? this.estimatedReadyAt,
-      storeName: storeName,
-      storeAddress: storeAddress,
-      storeLat: storeLat,
-      storeLng: storeLng,
-      quantity: quantity,
-      totalAmount: totalAmount,
-    );
-  }
-
+class OrdersLoading extends OrderTrackState {}
+class OrdersLoaded extends OrderTrackState {
+  final List<Order> orders;
+  const OrdersLoaded({this.orders = const []});
   @override
-  List<Object?> get props =>
-      [orderId, status, statusHistory, estimatedReadyAt];
+  List<Object?> get props => [orders];
 }
-
+class OrderDetailLoaded extends OrderTrackState {
+  final Order order;
+  const OrderDetailLoaded(this.order);
+  @override
+  List<Object?> get props => [order];
+}
 class OrderTrackError extends OrderTrackState {
   final String message;
   const OrderTrackError(this.message);
-}
-
-class StatusHistoryItem extends Equatable {
-  final String status;
-  final DateTime at;
-
-  const StatusHistoryItem({required this.status, required this.at});
-
   @override
-  List<Object?> get props => [status, at];
+  List<Object?> get props => [message];
 }
 
-// ─── BLoC ───────────────────────────────────────────────────────
 class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
   final ApiClient _api;
   final WebSocketService _ws;
-  StreamSubscription? _wsSubscription;
+  StreamSubscription? _wsSub;
 
-  OrderTrackBloc({
-    required ApiClient api,
-    required WebSocketService ws,
-  })  : _api = api,
+  OrderTrackBloc({required ApiClient api, required WebSocketService ws})
+      : _api = api,
         _ws = ws,
         super(OrderTrackInitial()) {
-    on<LoadOrder>(_onLoadOrder);
+    on<LoadOrders>(_onLoadOrders);
+    on<LoadOrderDetail>(_onLoadDetail);
     on<OrderStatusUpdated>(_onStatusUpdated);
-    on<StartTracking>(_onStartTracking);
-    on<StopTracking>(_onStopTracking);
+
+    _wsSub = _ws.onEvent('order:update').listen((msg) {
+      final data = msg['data'] as Map<String, dynamic>;
+      add(OrderStatusUpdated(
+        data['order_id'] as String,
+        data['status'] as String,
+        estimatedReadyAt: data['estimated_ready_at'] as String?,
+      ));
+    });
   }
 
-  Future<void> _onLoadOrder(LoadOrder event, Emitter<OrderTrackState> emit) async {
-    emit(OrderTrackLoading());
-
+  Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderTrackState> emit) async {
+    emit(OrdersLoading());
     try {
-      final response = await _api.get('/api/v1/orders/${event.orderId}/track');
-
+      final response = await _api.get('/api/v1/orders');
       if (response.isSuccess && response.data != null) {
-        final d = response.data!;
-        final history = (d['status_history'] as List)
-            .map((h) => StatusHistoryItem(
-                  status: h['status'] as String,
-                  at: DateTime.parse(h['at'] as String),
-                ))
+        final orders = (response.data!['orders'] as List? ?? [])
+            .map((j) => Order.fromJson(j as Map<String, dynamic>))
             .toList();
+        emit(OrdersLoaded(orders: orders));
+      } else {
+        emit(OrderTrackError(response.error ?? 'Failed to load orders'));
+      }
+    } catch (e) {
+      emit(OrderTrackError(e.toString()));
+    }
+  }
 
-        emit(OrderTrackLoaded(
-          orderId: d['order_id'] as String,
-          orderNumber: d['order_number'] as String,
-          status: d['status'] as String,
-          statusHistory: history,
-          estimatedReadyAt: d['estimated_ready_at'] != null
-              ? DateTime.parse(d['estimated_ready_at'] as String)
-              : null,
-          storeName: d['store']['name'] as String,
-          storeAddress: d['store']['address'] as String,
-          storeLat: (d['store']['lat'] as num).toDouble(),
-          storeLng: (d['store']['lng'] as num).toDouble(),
-          quantity: d['quantity'] as int,
-          totalAmount: (d['total_amount'] as num).toDouble(),
-        ));
-
-        // Subscribe to real-time updates
-        add(StartTracking(event.orderId));
+  Future<void> _onLoadDetail(LoadOrderDetail event, Emitter<OrderTrackState> emit) async {
+    emit(OrderTrackInitial());
+    try {
+      final response = await _api.get('/api/v1/orders/${event.orderId}');
+      if (response.isSuccess && response.data != null) {
+        final order = Order.fromJson(response.data!['order'] as Map<String, dynamic>? ?? response.data!);
+        emit(OrderDetailLoaded(order));
       } else {
         emit(OrderTrackError(response.error ?? 'Order not found'));
       }
@@ -166,41 +105,69 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
     }
   }
 
-  void _onStartTracking(StartTracking event, Emitter<OrderTrackState> emit) {
-    _ws.subscribe('order:${event.orderId}');
-    _wsSubscription?.cancel();
-    _wsSubscription = _ws.watchOrderStatus(event.orderId).listen((status) {
-      add(OrderStatusUpdated(status, null));
-    });
-  }
-
-  void _onStatusUpdated(
-      OrderStatusUpdated event, Emitter<OrderTrackState> emit) {
-    if (state is OrderTrackLoaded) {
-      final current = state as OrderTrackLoaded;
-      final updatedHistory = [
-        ...current.statusHistory,
-        StatusHistoryItem(
+  void _onStatusUpdated(OrderStatusUpdated event, Emitter<OrderTrackState> emit) {
+    if (state is OrderDetailLoaded) {
+      final current = state as OrderDetailLoaded;
+      if (current.order.id == event.orderId) {
+        final updatedHistory = [
+          ...current.order.statusHistory,
+          StatusHistory(status: event.status, at: DateTime.now()),
+        ];
+        emit(OrderDetailLoaded(Order(
+          id: current.order.id,
+          orderNumber: current.order.orderNumber,
           status: event.status,
-          at: DateTime.now(),
-        ),
-      ];
-
-      emit(current.copyWith(
-        status: event.status,
-        statusHistory: updatedHistory,
-        estimatedReadyAt: event.estimatedReadyAt ?? current.estimatedReadyAt,
-      ));
+          quantity: current.order.quantity,
+          subtotal: current.order.subtotal,
+          serviceFee: current.order.serviceFee,
+          totalAmount: current.order.totalAmount,
+          currency: current.order.currency,
+          estimatedReadyAt: event.estimatedReadyAt ?? current.order.estimatedReadyAt,
+          storeName: current.order.storeName,
+          storeAddress: current.order.storeAddress,
+          storeLat: current.order.storeLat,
+          storeLng: current.order.storeLng,
+          offerTitle: current.order.offerTitle,
+          offerImageUrl: current.order.offerImageUrl,
+          createdAt: current.order.createdAt,
+          statusHistory: updatedHistory,
+        )));
+      }
     }
-  }
 
-  void _onStopTracking(StopTracking event, Emitter<OrderTrackState> emit) {
-    _wsSubscription?.cancel();
+    if (state is OrdersLoaded) {
+      final current = state as OrdersLoaded;
+      final updated = current.orders.map((o) {
+        if (o.id == event.orderId) {
+          return Order(
+            id: o.id,
+            orderNumber: o.orderNumber,
+            status: event.status,
+            quantity: o.quantity,
+            subtotal: o.subtotal,
+            serviceFee: o.serviceFee,
+            totalAmount: o.totalAmount,
+            currency: o.currency,
+            estimatedReadyAt: event.estimatedReadyAt ?? o.estimatedReadyAt,
+            storeName: o.storeName,
+            storeAddress: o.storeAddress,
+            storeLat: o.storeLat,
+            storeLng: o.storeLng,
+            offerTitle: o.offerTitle,
+            offerImageUrl: o.offerImageUrl,
+            createdAt: o.createdAt,
+            statusHistory: o.statusHistory,
+          );
+        }
+        return o;
+      }).toList();
+      emit(OrdersLoaded(orders: updated));
+    }
   }
 
   @override
   Future<void> close() {
-    _wsSubscription?.cancel();
+    _wsSub?.cancel();
     return super.close();
   }
 }

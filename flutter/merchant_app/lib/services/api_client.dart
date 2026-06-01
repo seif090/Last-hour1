@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -30,11 +29,30 @@ class ApiClient {
             'Accept': 'application/json',
           },
         )) {
-    _dio.interceptors.addAll([
-      _AuthInterceptor(_storage),
-      _RetryInterceptor(),
-      LogInterceptor(requestBody: true, responseBody: true, logPrint: (_) {}),
-    ]);
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        if (options.headers['Authorization'] == null) {
+          final token = await _storage.read(key: 'access_token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+        }
+        handler.next(options);
+      },
+      onError: (err, handler) async {
+        if (err.type == DioExceptionType.connectionTimeout || err.type == DioExceptionType.receiveTimeout) {
+          for (var i = 0; i < 2; i++) {
+            try {
+              await Future.delayed(Duration(seconds: 1 << i));
+              final response = await err.requestOptions.copyWith().execute();
+              handler.resolve(response);
+              return;
+            } catch (_) {}
+          }
+        }
+        handler.next(err);
+      },
+    ));
   }
 
   void setToken(String? token) {
@@ -98,38 +116,5 @@ class ApiClient {
       error: message,
       statusCode: e.response?.statusCode ?? 500,
     );
-  }
-}
-
-class _AuthInterceptor extends Interceptor {
-  final FlutterSecureStorage _storage;
-  _AuthInterceptor(this._storage);
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.headers['Authorization'] == null) {
-      final token = await _storage.read(key: 'access_token');
-      if (token != null) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-    }
-    handler.next(options);
-  }
-}
-
-class _RetryInterceptor extends Interceptor {
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.type == DioExceptionType.connectionTimeout || err.type == DioExceptionType.receiveTimeout) {
-      for (var i = 0; i < 2; i++) {
-        try {
-          await Future.delayed(Duration(seconds: 1 << i));
-          final response = await err.requestOptions.copyWith().execute();
-          handler.resolve(response);
-          return;
-        } catch (_) {}
-      }
-    }
-    handler.next(err);
   }
 }

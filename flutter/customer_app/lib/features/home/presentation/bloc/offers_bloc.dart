@@ -1,59 +1,46 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../services/api_client.dart';
-import '../../../services/location_service.dart';
-import '../../../services/websocket_service.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/location_service.dart';
+import '../../../../services/websocket_service.dart';
+import 'package:lasthour_shared/models/offer.dart';
 
-// ─── Events ─────────────────────────────────────────────────────
 abstract class OffersEvent extends Equatable {
   const OffersEvent();
   @override
   List<Object?> get props => [];
 }
 
-class FetchNearbyOffers extends OffersEvent {
+class FetchOffers extends OffersEvent {
+  final bool refresh;
+  const FetchOffers({this.refresh = false});
+}
+class LoadMoreOffers extends OffersEvent {}
+class CategoryFilterChanged extends OffersEvent {
+  final String category;
+  const CategoryFilterChanged(this.category);
+}
+class LocationUpdated extends OffersEvent {
   final double lat;
   final double lng;
-  final int radius;
-  final String? category;
-
-  const FetchNearbyOffers({
-    required this.lat,
-    required this.lng,
-    this.radius = 5000,
-    this.category,
-  });
-
-  @override
-  List<Object?> get props => [lat, lng, radius, category];
+  const LocationUpdated(this.lat, this.lng);
 }
-
-class RefreshOffers extends OffersEvent {}
-
-class LoadMoreOffers extends OffersEvent {}
-
-class StockUpdated extends OffersEvent {
+class StockUpdateReceived extends OffersEvent {
   final String offerId;
-  final int remaining;
-
-  const StockUpdated(this.offerId, this.remaining);
-
-  @override
-  List<Object?> get props => [offerId, remaining];
+  final int newStock;
+  const StockUpdateReceived(this.offerId, this.newStock);
 }
-
-class OfferRemoved extends OffersEvent {
+class OfferExpiredReceived extends OffersEvent {
   final String offerId;
-  const OfferRemoved(this.offerId);
+  const OfferExpiredReceived(this.offerId);
+}
+class SortChanged extends OffersEvent {
+  final String sortBy;
+  const SortChanged(this.sortBy);
 }
 
-class SelectCategory extends OffersEvent {
-  final String? category;
-  const SelectCategory(this.category);
-}
-
-// ─── State ──────────────────────────────────────────────────────
 abstract class OffersState extends Equatable {
   const OffersState();
   @override
@@ -61,96 +48,60 @@ abstract class OffersState extends Equatable {
 }
 
 class OffersInitial extends OffersState {}
-
 class OffersLoading extends OffersState {}
-
 class OffersLoaded extends OffersState {
-  final List<OfferCard> offers;
+  final List<Offer> offers;
   final bool hasMore;
-  final int currentPage;
-  final String? selectedCategory;
-  final int totalCount;
+  final bool isLoadingMore;
+  final String category;
+  final String sortBy;
+  final Position? location;
 
   const OffersLoaded({
-    required this.offers,
-    this.hasMore = false,
-    this.currentPage = 1,
-    this.selectedCategory,
-    this.totalCount = 0,
+    this.offers = const [],
+    this.hasMore = true,
+    this.isLoadingMore = false,
+    this.category = 'all',
+    this.sortBy = 'distance',
+    this.location,
   });
 
   OffersLoaded copyWith({
-    List<OfferCard>? offers,
+    List<Offer>? offers,
     bool? hasMore,
-    int? currentPage,
-    String? selectedCategory,
-    int? totalCount,
+    bool? isLoadingMore,
+    String? category,
+    String? sortBy,
+    Position? location,
   }) {
     return OffersLoaded(
       offers: offers ?? this.offers,
       hasMore: hasMore ?? this.hasMore,
-      currentPage: currentPage ?? this.currentPage,
-      selectedCategory: selectedCategory ?? this.selectedCategory,
-      totalCount: totalCount ?? this.totalCount,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      category: category ?? this.category,
+      sortBy: sortBy ?? this.sortBy,
+      location: location ?? this.location,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [offers, hasMore, currentPage, selectedCategory, totalCount];
+  List<Object?> get props => [offers, hasMore, isLoadingMore, category, sortBy, location];
 }
 
 class OffersError extends OffersState {
   final String message;
   const OffersError(this.message);
-}
-
-// ─── Card Model ─────────────────────────────────────────────────
-class OfferCard extends Equatable {
-  final String id;
-  final String title;
-  final double discountedPrice;
-  final double originalPrice;
-  final int stockRemaining;
-  final int stockInitial;
-  final DateTime endTime;
-  final String imageUrl;
-  final String storeName;
-  final double distanceM;
-  final String category;
-
-  const OfferCard({
-    required this.id,
-    required this.title,
-    required this.discountedPrice,
-    required this.originalPrice,
-    required this.stockRemaining,
-    required this.stockInitial,
-    required this.endTime,
-    required this.imageUrl,
-    required this.storeName,
-    required this.distanceM,
-    required this.category,
-  });
-
-  bool get isLowStock => stockRemaining <= stockInitial * 0.1;
-  double get discountPercent =>
-      ((originalPrice - discountedPrice) / originalPrice * 100);
-
   @override
-  List<Object?> get props => [id, stockRemaining];
+  List<Object?> get props => [message];
 }
 
-// ─── BLoC ───────────────────────────────────────────────────────
 class OffersBloc extends Bloc<OffersEvent, OffersState> {
   final ApiClient _api;
   final WebSocketService _ws;
   final LocationService _location;
+  int _page = 1;
+  static const _perPage = 20;
   StreamSubscription? _wsSubscription;
-
-  double _currentLat = 30.0444;
-  double _currentLng = 31.2357;
-  String? _currentCategory;
 
   OffersBloc({
     required ApiClient api,
@@ -160,67 +111,83 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         _ws = ws,
         _location = location,
         super(OffersInitial()) {
-    on<FetchNearbyOffers>(_onFetchNearby);
-    on<RefreshOffers>(_onRefresh);
+    on<FetchOffers>(_onFetchOffers);
     on<LoadMoreOffers>(_onLoadMore);
-    on<StockUpdated>(_onStockUpdated);
-    on<OfferRemoved>(_onOfferRemoved);
-    on<SelectCategory>(_onSelectCategory);
+    on<CategoryFilterChanged>(_onCategoryChanged);
+    on<LocationUpdated>(_onLocationUpdated);
+    on<StockUpdateReceived>(_onStockUpdate);
+    on<OfferExpiredReceived>(_onOfferExpired);
+    on<SortChanged>(_onSortChanged);
 
-    _wsSubscription = _ws.offerFeed.listen((message) {
-      final event = message['event'] as String?;
+    _setupWebSocket();
+  }
+
+  void _setupWebSocket() {
+    _ws.connect(room: 'offers');
+    _wsSubscription = _ws.messages.listen((msg) {
+      final event = msg['event'] as String?;
+      final data = msg['data'] as Map<String, dynamic>? ?? {};
+
       if (event == 'stock:update') {
-        add(StockUpdated(
-          message['offer_id'] as String,
-          message['stock_remaining'] as int,
-        ));
-      } else if (event == 'offer:expired' || event == 'offer:sold_out') {
-        add(OfferRemoved(message['offer_id'] as String));
+        add(StockUpdateReceived(data['offer_id'] as String, data['stock_remaining'] as int));
+      } else if (event == 'offer:expired') {
+        add(OfferExpiredReceived(data['offer_id'] as String));
       }
     });
   }
 
-  Future<void> _onFetchNearby(
-      FetchNearbyOffers event, Emitter<OffersState> emit) async {
-    _currentLat = event.lat;
-    _currentLng = event.lng;
-    _currentCategory = event.category;
+  Future<void> _onFetchOffers(FetchOffers event, Emitter<OffersState> emit) async {
+    if (event.refresh) _page = 1;
 
-    emit(OffersLoading());
+    emit(state is OffersLoaded
+        ? (state as OffersLoaded).copyWith(isLoadingMore: !event.refresh)
+        : const OffersLoading());
 
     try {
-      final response = await _api.get('/api/v1/offers/nearby', query: {
-        'lat': _currentLat.toString(),
-        'lng': _currentLng.toString(),
-        'radius': event.radius.toString(),
-        if (_currentCategory != null) 'category': _currentCategory,
-      });
+      Position? pos;
+      try {
+        pos = await _location.getCurrentPosition();
+      } catch (_) {}
+
+      final params = <String, dynamic>{
+        'page': _page,
+        'perPage': _perPage,
+        if (state is OffersLoaded) ...{
+          'category': (state as OffersLoaded).category,
+          'sortBy': (state as OffersLoaded).sortBy,
+        },
+        if (pos != null) ...{
+          'lat': pos.latitude,
+          'lng': pos.longitude,
+        },
+      };
+
+      final response = await _api.get('/api/v1/offers/nearby', queryParams: params);
 
       if (response.isSuccess && response.data != null) {
-        final offersList = (response.data!['offers'] as List)
-            .map((j) => OfferCard(
-                  id: j['id'],
-                  title: j['title'],
-                  discountedPrice: (j['discounted_price'] as num).toDouble(),
-                  originalPrice: (j['original_price'] as num).toDouble(),
-                  stockRemaining: j['stock_remaining'] as int,
-                  stockInitial: j['stock_initial'] as int,
-                  endTime: DateTime.parse(j['end_time'] as String),
-                  imageUrl: j['image_url'] ?? '',
-                  storeName: j['store']['name'],
-                  distanceM: (j['store']['distance_m'] as num).toDouble(),
-                  category: j['product']['category'],
-                ))
+        final items = (response.data!['offers'] as List? ?? [])
+            .map((j) => Offer.fromJson(j as Map<String, dynamic>))
             .toList();
 
-        final meta = response.data!['meta'] as Map<String, dynamic>;
+        final totalPages = response.data!['totalPages'] as int? ?? 1;
 
-        emit(OffersLoaded(
-          offers: offersList,
-          hasMore: meta['has_more'] as bool,
-          totalCount: meta['total'] as int,
-          selectedCategory: _currentCategory,
-        ));
+        if (event.refresh || _page == 1) {
+          emit(OffersLoaded(
+            offers: items,
+            hasMore: _page < totalPages,
+            location: pos,
+            category: (state is OffersLoaded) ? (state as OffersLoaded).category : 'all',
+            sortBy: (state is OffersLoaded) ? (state as OffersLoaded).sortBy : 'distance',
+          ));
+        } else {
+          final current = state as OffersLoaded;
+          emit(current.copyWith(
+            offers: [...current.offers, ...items],
+            hasMore: _page < totalPages,
+            isLoadingMore: false,
+            location: pos,
+          ));
+        }
       } else {
         emit(OffersError(response.error ?? 'Failed to load offers'));
       }
@@ -229,90 +196,78 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     }
   }
 
-  Future<void> _onRefresh(RefreshOffers event, Emitter<OffersState> emit) async {
-    try {
-      final pos = await _location.getCurrentPosition();
-      add(FetchNearbyOffers(
-        lat: pos.latitude,
-        lng: pos.longitude,
-        category: _currentCategory,
-      ));
-    } catch (_) {
-      add(FetchNearbyOffers(
-        lat: _currentLat,
-        lng: _currentLng,
-        category: _currentCategory,
+  Future<void> _onLoadMore(LoadMoreOffers event, Emitter<OffersState> emit) async {
+    if (state is! OffersLoaded) return;
+    final current = state as OffersLoaded;
+    if (current.isLoadingMore || !current.hasMore) return;
+
+    _page++;
+    emit(current.copyWith(isLoadingMore: true));
+    add(const FetchOffers());
+  }
+
+  void _onCategoryChanged(CategoryFilterChanged event, Emitter<OffersState> emit) {
+    if (state is OffersLoaded) {
+      emit((state as OffersLoaded).copyWith(category: event.category));
+    }
+    _page = 1;
+    add(const FetchOffers(refresh: true));
+  }
+
+  void _onLocationUpdated(LocationUpdated event, Emitter<OffersState> emit) {
+    if (state is OffersLoaded) {
+      emit((state as OffersLoaded).copyWith(
+        location: Position(
+          latitude: event.lat,
+          longitude: event.lng,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        ),
       ));
     }
   }
 
-  Future<void> _onLoadMore(
-      LoadMoreOffers event, Emitter<OffersState> emit) async {
-    if (state is! OffersLoaded || !(state as OffersLoaded).hasMore) return;
-
-    final current = state as OffersLoaded;
-    final nextPage = current.currentPage + 1;
-
-    try {
-      final response = await _api.get('/api/v1/offers/nearby', query: {
-        'lat': _currentLat.toString(),
-        'lng': _currentLng.toString(),
-        'page': nextPage.toString(),
-      });
-
-      if (response.isSuccess && response.data != null) {
-        final newOffers = (response.data!['offers'] as List)
-            .map((j) => OfferCard(
-                  id: j['id'],
-                  title: j['title'],
-                  discountedPrice: (j['discounted_price'] as num).toDouble(),
-                  originalPrice: (j['original_price'] as num).toDouble(),
-                  stockRemaining: j['stock_remaining'] as int,
-                  stockInitial: j['stock_initial'] as int,
-                  endTime: DateTime.parse(j['end_time'] as String),
-                  imageUrl: j['image_url'] ?? '',
-                  storeName: j['store']['name'],
-                  distanceM: (j['store']['distance_m'] as num).toDouble(),
-                  category: j['product']['category'],
-                ))
-            .toList();
-
-        emit(current.copyWith(
-          offers: [...current.offers, ...newOffers],
-          currentPage: nextPage,
-          hasMore: response.data!['meta']['has_more'] as bool,
-        ));
-      }
-    } catch (_) {}
-  }
-
-  void _onStockUpdated(StockUpdated event, Emitter<OffersState> emit) {
+  void _onStockUpdate(StockUpdateReceived event, Emitter<OffersState> emit) {
     if (state is OffersLoaded) {
       final current = state as OffersLoaded;
-      final updated = current.offers.map((offer) {
-        if (offer.id == event.offerId) {
-          return OfferCard(
-            id: offer.id,
-            title: offer.title,
-            discountedPrice: offer.discountedPrice,
-            originalPrice: offer.originalPrice,
-            stockRemaining: event.remaining,
-            stockInitial: offer.stockInitial,
-            endTime: offer.endTime,
-            imageUrl: offer.imageUrl,
-            storeName: offer.storeName,
-            distanceM: offer.distanceM,
-            category: offer.category,
+      final updated = current.offers.map((o) {
+        if (o.id == event.offerId) {
+          return Offer(
+            id: o.id,
+            title: o.title,
+            discountedPrice: o.discountedPrice,
+            originalPrice: o.originalPrice,
+            stockRemaining: event.newStock,
+            stockInitial: o.stockInitial,
+            endTime: o.endTime,
+            maxPerCustomer: o.maxPerCustomer,
+            imageUrl: o.imageUrl,
+            storeId: o.storeId,
+            storeName: o.storeName,
+            storeSlug: o.storeSlug,
+            cuisineType: o.cuisineType,
+            ratingAvg: o.ratingAvg,
+            ratingCount: o.ratingCount,
+            distanceM: o.distanceM,
+            productName: o.productName,
+            category: o.category,
+            lat: o.lat,
+            lng: o.lng,
           );
         }
-        return offer;
+        return o;
       }).toList();
-
       emit(current.copyWith(offers: updated));
     }
   }
 
-  void _onOfferRemoved(OfferRemoved event, Emitter<OffersState> emit) {
+  void _onOfferExpired(OfferExpiredReceived event, Emitter<OffersState> emit) {
     if (state is OffersLoaded) {
       final current = state as OffersLoaded;
       emit(current.copyWith(
@@ -321,13 +276,12 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     }
   }
 
-  void _onSelectCategory(SelectCategory event, Emitter<OffersState> emit) {
-    _currentCategory = event.category;
-    add(FetchNearbyOffers(
-      lat: _currentLat,
-      lng: _currentLng,
-      category: event.category,
-    ));
+  void _onSortChanged(SortChanged event, Emitter<OffersState> emit) {
+    if (state is OffersLoaded) {
+      emit((state as OffersLoaded).copyWith(sortBy: event.sortBy));
+    }
+    _page = 1;
+    add(const FetchOffers(refresh: true));
   }
 
   @override
