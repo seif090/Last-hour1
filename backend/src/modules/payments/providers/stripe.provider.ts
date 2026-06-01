@@ -14,7 +14,7 @@ export class StripeProvider {
     });
   }
 
-  async charge(payment: { paymentMethodId: string }, order: any) {
+  async charge(payment: { paymentMethodId?: string; [key: string]: any }, order: any) {
     try {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: Math.round(order.totalAmount * 100), // cents
