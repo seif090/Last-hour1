@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lasthour_shared/models/order.dart';
-import '../../../services/api_client.dart';
-import '../../../services/websocket_service.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 
 abstract class IncomingOrdersEvent extends Equatable {
   const IncomingOrdersEvent();

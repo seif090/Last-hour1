@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lasthour_shared/models/offer.dart';
-import '../../../services/api_client.dart';
+import '../../../../services/api_client.dart';
 
 abstract class MerchantOffersEvent extends Equatable {
   const MerchantOffersEvent();
@@ -98,7 +98,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
       final response = await _api.post('/api/v1/merchant/offers', body: event.data);
       if (response.isSuccess) {
         emit(const OfferActionSuccess('Offer created'));
-        add(const LoadMerchantOffers());
+        add(LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to create offer'));
       }
@@ -114,7 +114,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
       });
       if (response.isSuccess) {
         emit(const OfferActionSuccess('Stock updated'));
-        add(const LoadMerchantOffers());
+        add(LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to update stock'));
       }
@@ -130,7 +130,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
       });
       if (response.isSuccess) {
         emit(const OfferActionSuccess('Offer ended'));
-        add(const LoadMerchantOffers());
+        add(LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to end offer'));
       }
@@ -144,7 +144,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
       final response = await _api.delete('/api/v1/merchant/offers/${event.offerId}');
       if (response.isSuccess) {
         emit(const OfferActionSuccess('Offer deleted'));
-        add(const LoadMerchantOffers());
+        add(LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to delete offer'));
       }
@@ -158,7 +158,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
       final response = await _api.patch('/api/v1/merchant/offers/${event.offerId}', body: event.data);
       if (response.isSuccess) {
         emit(const OfferActionSuccess('Offer updated'));
-        add(const LoadMerchantOffers());
+        add(LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to update offer'));
       }

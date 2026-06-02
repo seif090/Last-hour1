@@ -32,7 +32,7 @@ class _AdminAuthPageState extends State<AdminAuthPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.admin_panel_settings, size: 64, color: Colors.red),
+                Icon(Icons.admin_panel_settings, size: 64, color: Theme.of(context).colorScheme.error),
                 const SizedBox(height: 16),
                 const Text('Admin Login', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 32),

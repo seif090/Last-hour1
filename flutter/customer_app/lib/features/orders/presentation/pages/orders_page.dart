@@ -5,6 +5,8 @@ import '../bloc/order_track_bloc.dart';
 import '../widgets/order_card.dart';
 import '../../../../core/widgets/error_screen.dart';
 import '../../../../core/widgets/infinite_scroll_list.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 import '../../../../injector.dart';
 
 class OrdersPage extends StatefulWidget {
@@ -50,6 +52,7 @@ class _OrdersPageState extends State<OrdersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Orders'),
@@ -79,9 +82,9 @@ class _OrdersPageState extends State<OrdersPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.receipt_long, size: 64, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(height: 16),
-                      Text('No orders yet', style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+                      Text('No orders yet', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 16)),
                       if (_selectedStatus != null) ...[
                         const SizedBox(height: 8),
                         TextButton(onPressed: () {

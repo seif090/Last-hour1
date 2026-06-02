@@ -18,8 +18,10 @@ import '../../features/notification_preferences/presentation/pages/notification_
 import '../../features/payment_methods/presentation/pages/payment_methods_page.dart';
 
 class _AuthStateNotifier extends ChangeNotifier {
-  final StreamSubscription _sub;
-  _AuthStateNotifier(AuthBloc bloc) : _sub = bloc.stream.listen((_) => notifyListeners());
+  late final StreamSubscription _sub;
+  _AuthStateNotifier(AuthBloc bloc) {
+    _sub = bloc.stream.listen((_) => notifyListeners());
+  }
   @override
   void dispose() { _sub.cancel(); super.dispose(); }
 }

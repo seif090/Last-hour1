@@ -13,6 +13,8 @@ class ApiClient {
   final Dio _dio;
   String? _token;
 
+  String? get token => _token;
+
   ApiClient()
       : _dio = Dio(BaseOptions(
           baseUrl: 'http://10.0.2.2:3000/api/v1',

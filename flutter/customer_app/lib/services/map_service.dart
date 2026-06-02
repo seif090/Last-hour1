@@ -2,14 +2,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lasthour_shared/models/offer.dart';
 
 class MapService {
-  static const _categoryColors = <String, String>{
-    'Food': 'red',
-    'Drinks': 'blue',
-    'Electronics': 'purple',
-    'Fashion': 'pink',
-    'Other': 'teal',
-  };
-
   Set<Marker> buildOfferMarkers(List<Offer> offers, {void Function(String)? onTap}) {
     return offers.map((o) {
       final hue = _categoryToHue(o.category);

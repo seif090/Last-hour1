@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../injector.dart';
-import '../../../services/api_client.dart';
+import '../../../../injector.dart';
+import '../../../../services/api_client.dart';
 
 class MerchantAnalyticsPage extends StatefulWidget {
   const MerchantAnalyticsPage({super.key});
@@ -53,6 +53,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Analytics'),
@@ -100,25 +101,25 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                                 'Total Orders',
                                 '${_analytics!['totalOrders'] ?? 0}',
                                 Icons.receipt_long,
-                                Colors.blue,
+                                theme.colorScheme.primary,
                               ),
                               _metricCard(
                                 'Total Revenue',
                                 '${(_analytics!['totalRevenue'] as num? ?? 0).toStringAsFixed(0)} EGP',
                                 Icons.currency_pound,
-                                Colors.green,
+                                theme.colorScheme.tertiary,
                               ),
                               _metricCard(
                                 'Stores',
                                 '${_analytics!['stores'] ?? 0}',
                                 Icons.store,
-                                Colors.orange,
+                                theme.colorScheme.secondary,
                               ),
                               _metricCard(
                                 'Avg Daily Orders',
                                 '${_days > 0 ? ((_analytics!['totalOrders'] as num? ?? 0) / _days).toStringAsFixed(1) : 0}',
                                 Icons.trending_up,
-                                Colors.purple,
+                                theme.colorScheme.tertiary,
                               ),
                             ],
                           ),
@@ -137,6 +138,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
   }
 
   Widget _metricCard(String label, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -147,7 +149,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             const SizedBox(height: 8),
             Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), textAlign: TextAlign.center),
+            Text(label, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -155,6 +157,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
   }
 
   Widget _buildDailyRow(Map<String, dynamic> day) {
+    final theme = Theme.of(context);
     final date = day['date'] as String? ?? '';
     final orders = day['orders'] as int? ?? 0;
     final revenue = (day['revenue'] as num?)?.toDouble() ?? 0;
@@ -164,7 +167,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
         dense: true,
         title: Text(date),
         trailing: Text('$orders orders · ${revenue.toStringAsFixed(0)} EGP',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
       ),
     );
   }

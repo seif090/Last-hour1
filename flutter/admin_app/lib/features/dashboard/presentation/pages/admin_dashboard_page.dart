@@ -35,6 +35,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
@@ -62,13 +63,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       crossAxisSpacing: 12,
                       childAspectRatio: 1.5,
                         children: [
-                          _card('Users', '${_stats?['totalUsers'] ?? 0}', Icons.people, Colors.blue),
-                          _card('Merchants', '${_stats?['totalMerchants'] ?? 0}', Icons.store, Colors.orange),
+                          _card('Users', '${_stats?['totalUsers'] ?? 0}', Icons.people, theme.colorScheme.primary),
+                          _card('Merchants', '${_stats?['totalMerchants'] ?? 0}', Icons.store, theme.colorScheme.secondary),
                           _card('Stores', '${_stats?['totalStores'] ?? 0}', Icons.storefront, Colors.amber),
-                          _card('Orders', '${_stats?['totalOrders'] ?? 0}', Icons.receipt_long, Colors.green),
-                          _card('Revenue', '${_stats?['totalRevenue'] ?? 0}', Icons.currency_pound, Colors.purple),
-                          _card('Active Offers', '${_stats?['activeOffers'] ?? 0}', Icons.local_offer, Colors.red),
-                          _card('Orders Today', '${_stats?['ordersToday'] ?? 0}', Icons.today, Colors.teal),
+                          _card('Orders', '${_stats?['totalOrders'] ?? 0}', Icons.receipt_long, theme.colorScheme.tertiary),
+                          _card('Revenue', '${_stats?['totalRevenue'] ?? 0}', Icons.currency_pound, theme.colorScheme.tertiary),
+                          _card('Active Offers', '${_stats?['activeOffers'] ?? 0}', Icons.local_offer, theme.colorScheme.error),
+                          _card('Orders Today', '${_stats?['ordersToday'] ?? 0}', Icons.today, theme.colorScheme.tertiary),
                         ],
                     ),
                   ],
@@ -79,6 +80,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _card(String label, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -88,7 +90,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Icon(icon, size: 28, color: color),
             const SizedBox(height: 8),
             Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-            Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Text(label, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
       ),

@@ -54,7 +54,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     subtitle: Text('Role: ${u['role'] ?? ''}'),
                     trailing: IconButton(
                       icon: Icon(isActive ? Icons.block : Icons.check_circle,
-                          color: isActive ? Colors.red : Colors.green),
+                          color: isActive ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.tertiary),
                       onPressed: () => _toggleBan(u['id'] as String, isActive),
                     ),
                   );

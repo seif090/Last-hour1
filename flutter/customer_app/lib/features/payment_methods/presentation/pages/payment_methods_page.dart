@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/payment_methods_bloc.dart';
-import '../../../services/api_client.dart';
-import '../../../injector.dart';
+import '../../../../services/api_client.dart';
+import '../../../../injector.dart';
 
 class PaymentMethodsPage extends StatefulWidget {
   const PaymentMethodsPage({super.key});
@@ -28,6 +28,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Payment Methods')),
       floatingActionButton: FloatingActionButton(
@@ -52,9 +53,9 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.credit_card_outlined, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.credit_card_outlined, size: 64, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(height: 16),
-                      Text('No saved payment methods', style: TextStyle(color: Colors.grey.shade500)),
+                      Text('No saved payment methods', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.add),
@@ -82,7 +83,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                         brand.toLowerCase().contains('mastercard')
                             ? Icons.credit_card
                             : Icons.credit_card,
-                        color: Colors.blue,
+                        color: theme.colorScheme.primary,
                         size: 32,
                       ),
                       title: Text('$brand •••• $last4'),
@@ -94,10 +95,10 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade50,
+                                color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text('Default', style: TextStyle(fontSize: 11, color: Colors.green.shade700)),
+                              child: Text('Default', style: TextStyle(fontSize: 11, color: theme.colorScheme.tertiary)),
                             ),
                           if (!isDefault && methods.length > 1)
                             IconButton(
@@ -106,7 +107,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
                               onPressed: () => _bloc.add(SetDefaultPaymentMethod(m['id'] as String)),
                             ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                            icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
                             onPressed: () => _confirmDelete(m['id'] as String),
                           ),
                         ],
@@ -124,6 +125,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
   }
 
   void _confirmDelete(String id) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -136,7 +138,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
               Navigator.pop(ctx);
               _bloc.add(DeletePaymentMethod(id));
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text('Remove', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),
@@ -167,7 +169,7 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
               const SizedBox(height: 16),
               TextField(controller: brandCtrl, decoration: const InputDecoration(labelText: 'Card Brand', hintText: 'Visa', border: OutlineInputBorder())),
               const SizedBox(height: 12),
-              TextField(controller: last4Ctrl, decoration: const InputDecoration(labelText: 'Last 4 Digits', maxLength: 4, border: OutlineInputBorder()), keyboardType: TextInputType.number),
+              TextField(controller: last4Ctrl, maxLength: 4, decoration: const InputDecoration(labelText: 'Last 4 Digits', border: OutlineInputBorder()), keyboardType: TextInputType.number),
               const SizedBox(height: 12),
               Row(
                 children: [

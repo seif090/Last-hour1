@@ -55,7 +55,7 @@ class _AdminMerchantsPageState extends State<AdminMerchantsPage> {
                     subtitle: Text('${m['businessType'] ?? ''} · ${verified ? "Verified" : "Unverified"}'),
                     trailing: IconButton(
                       icon: Icon(verified ? Icons.verified : Icons.verified_outlined,
-                          color: verified ? Colors.blue : Colors.grey),
+                          color: verified ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant),
                       onPressed: () => _toggleVerify(m['id'] as String),
                     ),
                   );

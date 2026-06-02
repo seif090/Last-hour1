@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../injector.dart';
-import '../../../services/api_client.dart';
-import '../models/coupon.dart';
+import '../../../../injector.dart';
+import '../../../../services/api_client.dart';
+import '../../models/coupon.dart';
 
 abstract class CouponsEvent {}
 

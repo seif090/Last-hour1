@@ -40,10 +40,10 @@ class _AdminCouponsPageState extends State<AdminCouponsPage> {
           : RefreshIndicator(
               onRefresh: _load,
               child: _coupons.isEmpty
-                  ? ListView(child: const Center(child: Padding(
+                  ? ListView(children: [const Center(child: Padding(
                       padding: EdgeInsets.all(32),
                       child: Text('No coupons found'),
-                    )))
+                    ))])
                   : ListView.builder(
                       itemCount: _coupons.length,
                       itemBuilder: (_, i) {
@@ -60,7 +60,7 @@ class _AdminCouponsPageState extends State<AdminCouponsPage> {
                             subtitle: Text('${store['name'] ?? 'All'} — $type ${value}% — Min $minAmount'),
                             trailing: Icon(
                               isActive ? Icons.check_circle : Icons.cancel,
-                              color: isActive ? Colors.green : Colors.red,
+                              color: isActive ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.error,
                             ),
                           ),
                         );

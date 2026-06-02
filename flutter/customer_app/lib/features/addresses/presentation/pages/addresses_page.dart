@@ -20,7 +20,7 @@ class _AddressesPageState extends State<AddressesPage> {
   void initState() {
     super.initState();
     _bloc = AddressesBloc(api: sl<ApiClient>());
-    _bloc.add(const LoadAddresses());
+    _bloc.add(LoadAddresses());
   }
 
   @override
@@ -31,6 +31,7 @@ class _AddressesPageState extends State<AddressesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Addresses'),
@@ -51,7 +52,7 @@ class _AddressesPageState extends State<AddressesPage> {
             if (state is AddressesError) {
               return ErrorScreen(
                 message: state.message,
-                onRetry: () => _bloc.add(const LoadAddresses()),
+                onRetry: () => _bloc.add(LoadAddresses()),
               );
             }
             if (state is AddressesLoaded) {
@@ -60,9 +61,9 @@ class _AddressesPageState extends State<AddressesPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.location_on_outlined, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.location_on_outlined, size: 64, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(height: 16),
-                      Text('No addresses saved', style: TextStyle(color: Colors.grey.shade500)),
+                      Text('No addresses saved', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         onPressed: () => _showAddressForm(context),
@@ -74,7 +75,7 @@ class _AddressesPageState extends State<AddressesPage> {
                 );
               }
               return RefreshIndicator(
-                onRefresh: () async => _bloc.add(const LoadAddresses()),
+                onRefresh: () async => _bloc.add(LoadAddresses()),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: state.addresses.length,
@@ -90,6 +91,7 @@ class _AddressesPageState extends State<AddressesPage> {
   }
 
   Widget _buildAddressCard(BuildContext context, Address address) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -97,7 +99,7 @@ class _AddressesPageState extends State<AddressesPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.location_on, color: address.isDefault ? Colors.red : Colors.grey),
+            Icon(Icons.location_on, color: address.isDefault ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -111,19 +113,19 @@ class _AddressesPageState extends State<AddressesPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
+                            color: theme.colorScheme.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('Default', style: TextStyle(fontSize: 11, color: Colors.red)),
+                          child: Text('Default', style: TextStyle(fontSize: 11, color: theme.colorScheme.error)),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(address.addressLine1, style: TextStyle(color: Colors.grey.shade700)),
-                  if (address.addressLine2 != null) Text(address.addressLine2!, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                  Text(address.addressLine1, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                  if (address.addressLine2 != null) Text(address.addressLine2!, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
                   Text('${address.city}${address.district != null ? ', ${address.district}' : ''}',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
                 ],
               ),
             ),
@@ -134,7 +136,7 @@ class _AddressesPageState extends State<AddressesPage> {
               },
               itemBuilder: (_) => [
                 const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: theme.colorScheme.error))),
               ],
             ),
           ],
@@ -271,6 +273,7 @@ class _AddressesPageState extends State<AddressesPage> {
   }
 
   void _confirmDelete(String id) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -283,7 +286,7 @@ class _AddressesPageState extends State<AddressesPage> {
               _bloc.add(DeleteAddress(id));
               Navigator.pop(ctx);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/error_screen.dart';
 import '../../../../core/widgets/star_rating.dart';
 import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 import '../../../../injector.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -41,6 +42,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Order Details')),
       body: BlocProvider.value(
@@ -83,7 +85,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             const SizedBox(height: 12),
                             Text(order.storeName, style: const TextStyle(fontSize: 16)),
                             const SizedBox(height: 4),
-                            Text(order.offerTitle, style: TextStyle(color: Colors.grey.shade600)),
+                            Text(order.offerTitle, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                             const SizedBox(height: 16),
                             const Divider(),
                             _row('Quantity', '${order.quantity}'),
@@ -102,7 +104,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  const Icon(Icons.schedule, size: 16, color: Colors.orange),
+                                  Icon(Icons.schedule, size: 16, color: theme.colorScheme.secondary),
                                   const SizedBox(width: 8),
                                   Text('Estimated ready: ${order.estimatedReadyAt}'),
                                 ],
@@ -139,10 +141,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () => _confirmCancel(order.id),
-                            icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                            label: const Text('Cancel Order', style: TextStyle(color: Colors.red)),
+                            icon: Icon(Icons.cancel_outlined, color: theme.colorScheme.error),
+                            label: Text('Cancel Order', style: TextStyle(color: theme.colorScheme.error)),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.red),
+                              side: BorderSide(color: theme.colorScheme.error),
                               minimumSize: const Size(double.infinity, 48),
                             ),
                           ),
@@ -175,12 +177,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _row(String label, String value, {bool bold = false}) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Text(label, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           Text(value, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.normal, fontSize: bold ? 16 : 14)),
         ],
       ),
@@ -188,27 +191,28 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _statusChip(String status) {
+    final theme = Theme.of(context);
     Color color;
     switch (status) {
       case 'pending':
-        color = Colors.orange;
+        color = theme.colorScheme.secondary;
       case 'confirmed':
-        color = Colors.blue;
+        color = theme.colorScheme.primary;
       case 'preparing':
-        color = Colors.purple;
+        color = theme.colorScheme.tertiary;
       case 'ready':
-        color = Colors.green;
+        color = theme.colorScheme.tertiary;
       case 'pickedUp':
-        color = Colors.grey;
+        color = theme.colorScheme.onSurfaceVariant;
       case 'cancelled':
-        color = Colors.red;
+        color = theme.colorScheme.error;
       default:
-        color = Colors.grey;
+        color = theme.colorScheme.onSurfaceVariant;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(status[0].toUpperCase() + status.substring(1),
@@ -217,16 +221,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildReviewSection(dynamic order) {
+    final theme = Theme.of(context);
     if (_reviewSubmitted) {
       return Card(
-        color: Colors.green.shade50,
-        child: const Padding(
-          padding: EdgeInsets.all(16),
+        color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green),
-              SizedBox(width: 12),
-              Text('Review submitted! Thank you.', style: TextStyle(fontWeight: FontWeight.w500)),
+              Icon(Icons.check_circle, color: theme.colorScheme.tertiary),
+              const SizedBox(width: 12),
+              const Text('Review submitted! Thank you.', style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -248,7 +253,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 return IconButton(
                   icon: Icon(
                     star <= _rating ? Icons.star : Icons.star_border,
-                    color: star <= _rating ? Colors.amber : Colors.grey.shade300,
+                    color: star <= _rating ? Colors.amber : theme.colorScheme.onSurfaceVariant,
                     size: 36,
                   ),
                   onPressed: _submittingReview ? null : () => setState(() => _rating = star),
@@ -290,7 +295,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _rating > 0 && !_submittingReview ? () => _submitReview(order.id) : null,
+                onPressed: _rating > 0 && !_submittingReview ? () => _submitReview(order.id as String) : null,
                 child: _submittingReview
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Text('Submit Review'),
@@ -334,6 +339,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   void _confirmCancel(String orderId) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -346,7 +352,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               Navigator.pop(ctx);
               _bloc.add(CancelOrder(orderId));
             },
-            child: const Text('Cancel Order', style: TextStyle(color: Colors.red)),
+            child: Text('Cancel Order', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

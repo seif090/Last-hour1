@@ -29,13 +29,6 @@ class _MapExplorePageState extends State<MapExplorePage> {
   List<Offer> _allOffers = [];
 
   static const _categories = ['Food', 'Drinks', 'Electronics', 'Fashion', 'Other'];
-  static const _categoryColors = {
-    'Food': Colors.red,
-    'Drinks': Colors.blue,
-    'Electronics': Colors.purple,
-    'Fashion': Colors.pink,
-    'Other': Colors.teal,
-  };
 
   @override
   void initState() {
@@ -118,6 +111,14 @@ class _MapExplorePageState extends State<MapExplorePage> {
   }
 
   Widget _buildCategoryFilter() {
+    final theme = Theme.of(context);
+    final categoryColors = {
+      'Food': theme.colorScheme.error,
+      'Drinks': theme.colorScheme.primary,
+      'Electronics': theme.colorScheme.tertiary,
+      'Fashion': theme.colorScheme.primary,
+      'Other': theme.colorScheme.tertiary,
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
@@ -139,7 +140,7 @@ class _MapExplorePageState extends State<MapExplorePage> {
                 return FilterChip(
                   label: Text(cat),
                   selected: selected,
-                  selectedColor: _categoryColors[cat]?.withOpacity(0.2),
+                  selectedColor: categoryColors[cat]?.withValues(alpha: 0.2),
                   onSelected: (_) {
                     setState(() => _selectedCategory = selected ? null : cat);
                     _rebuildMarkers();

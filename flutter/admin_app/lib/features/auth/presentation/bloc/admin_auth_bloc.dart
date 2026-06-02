@@ -47,7 +47,7 @@ class AdminAuthBloc extends Bloc<AdminAuthEvent, AdminAuthState> {
   }
 
   void _onCheck(CheckAdminAuth event, Emitter<AdminAuthState> emit) {
-    if (_api._token != null) {
+    if (_api.token != null) {
       emit(AdminAuthenticated());
     } else {
       emit(AdminUnauthenticated());

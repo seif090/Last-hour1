@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/notification_prefs_bloc.dart';
-import '../../../services/api_client.dart';
-import '../../../injector.dart';
+import '../../../../services/api_client.dart';
+import '../../../../injector.dart';
 
 class NotificationPrefsPage extends StatefulWidget {
   const NotificationPrefsPage({super.key});
@@ -28,6 +28,7 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Notification Preferences')),
       body: BlocProvider.value(
@@ -54,7 +55,7 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Push notifications must be enabled for any of the below to work.',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                     ),
                   ),
                 ],
@@ -78,7 +79,7 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
     );
   }
 
-  dynamic _eventForField(String field) {
+  NotificationPrefsEvent _eventForField(String field) {
     switch (field) {
       case 'pushEnabled': return TogglePushEnabled();
       case 'orderConfirmed': return ToggleOrderConfirmed();

@@ -54,7 +54,7 @@ class _AdminOffersPageState extends State<AdminOffersPage> {
                     subtitle: Text('${o['discountedPrice'] ?? ''} EGP · $status'),
                     trailing: status == 'active'
                         ? IconButton(
-                            icon: const Icon(Icons.timer_off, color: Colors.red),
+                            icon: Icon(Icons.timer_off, color: Theme.of(context).colorScheme.error),
                             onPressed: () => _expireOffer(o['id'] as String),
                           )
                         : null,

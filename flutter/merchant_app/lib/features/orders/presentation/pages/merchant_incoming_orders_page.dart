@@ -58,6 +58,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
             }
           },
           builder: (context, state) {
+            final theme = Theme.of(context);
             if (state is IncomingOrdersLoading && state is! IncomingOrdersLoaded) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -89,14 +90,14 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Center(
-                          child: Text('All orders loaded', style: TextStyle(color: Colors.grey.shade500)),
+                          child: Text('All orders loaded', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                         ),
                       ),
-                  ],
-                ),
-              );
-            }
-            return const SizedBox();
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox();
           },
         ),
       ),
@@ -104,6 +105,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
   }
 
   Widget _section(BuildContext context, String title, List<Order> orders, bool showActions) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -122,7 +124,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                     style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text('${order.quantity}x — ${order.totalAmount.toStringAsFixed(0)} EGP',
-                    style: TextStyle(color: Colors.grey.shade600)),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                 if (showActions) ...[
                   const SizedBox(height: 12),
                   Row(
@@ -130,7 +132,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () => _bloc.add(AcceptOrder(order.id)),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.tertiary),
                           child: const Text('Accept'),
                         ),
                       ),
@@ -138,7 +140,7 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => _bloc.add(OrderStatusChanged(order.id, 'cancelled')),
-                          style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                          style: OutlinedButton.styleFrom(foregroundColor: theme.colorScheme.error),
                           child: const Text('Decline'),
                         ),
                       ),
@@ -175,41 +177,44 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
     );
   }
 
-  void _showQrCode(BuildContext context, dynamic order) {
+  void _showQrCode(BuildContext context, Order order) {
     final orderNumber = order.orderNumber;
-    showDialog(
+    showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Order QR Code'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Order #$orderNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=lasthour://orders/$orderNumber',
-                width: 200,
-                height: 200,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 200, height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Text(orderNumber, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return AlertDialog(
+          title: const Text('Order QR Code'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Order #$orderNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=lasthour://orders/$orderNumber',
+                  width: 200,
+                  height: 200,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 200, height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: theme.colorScheme.surfaceContainerHighest),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(orderNumber, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
           ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -222,12 +227,15 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
       }
       return;
     }
-    final d = resp.data!['data'] as Map<String, dynamic>? ?? resp.data;
+    final data = resp.data!;
+    final d = data['data'] as Map<String, dynamic>? ?? data;
     if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
@@ -244,20 +252,20 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                 ],
               ),
               const Divider(height: 24),
-              _invoiceRow('Invoice #', d['invoiceNumber'] as String? ?? ''),
-              _invoiceRow('Order #', d['orderNumber'] as String? ?? ''),
-              _invoiceRow('Date', d['createdAt'] as String? ?? ''),
+              _invoiceRow(theme, 'Invoice #', d['invoiceNumber'] as String? ?? ''),
+              _invoiceRow(theme, 'Order #', d['orderNumber'] as String? ?? ''),
+              _invoiceRow(theme, 'Date', d['createdAt'] as String? ?? ''),
               if (d['store'] != null) ...[
                 const SizedBox(height: 16),
                 Text('Store', style: Theme.of(ctx).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                _invoiceRow('Name', (d['store'] as Map)['name'] as String? ?? ''),
-                _invoiceRow('Address', (d['store'] as Map)['address_line1'] as String? ?? ''),
+                _invoiceRow(theme, 'Name', (d['store'] as Map)['name'] as String? ?? ''),
+                _invoiceRow(theme, 'Address', (d['store'] as Map)['address_line1'] as String? ?? ''),
               ],
               if (d['customer'] != null) ...[
                 const SizedBox(height: 16),
                 Text('Customer', style: Theme.of(ctx).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                _invoiceRow('Email', (d['customer'] as Map)['email'] as String? ?? ''),
-                _invoiceRow('Phone', (d['customer'] as Map)['phone'] as String? ?? ''),
+                _invoiceRow(theme, 'Email', (d['customer'] as Map)['email'] as String? ?? ''),
+                _invoiceRow(theme, 'Phone', (d['customer'] as Map)['phone'] as String? ?? ''),
               ],
               const Divider(height: 24),
               Text('Items', style: Theme.of(ctx).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
@@ -271,34 +279,35 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                 );
               }) ?? []),
               const Divider(height: 24),
-              _invoiceRow('Subtotal', '${(d['subtotal'] as num?)?.toStringAsFixed(0) ?? '0'} EGP'),
+              _invoiceRow(theme, 'Subtotal', '${(d['subtotal'] as num?)?.toStringAsFixed(0) ?? '0'} EGP'),
               if ((d['discountAmount'] as num?) != null && (d['discountAmount'] as num) > 0) ...[
-                _invoiceRow('Discount', '-${(d['discountAmount'] as num).toStringAsFixed(0)} EGP'),
-                if (d['couponCode'] != null) _invoiceRow('Coupon', d['couponCode'] as String),
+                _invoiceRow(theme, 'Discount', '-${(d['discountAmount'] as num).toStringAsFixed(0)} EGP'),
+                if (d['couponCode'] != null) _invoiceRow(theme, 'Coupon', d['couponCode'] as String),
               ],
-              _invoiceRow('Service Fee', '${(d['serviceFee'] as num?)?.toStringAsFixed(0) ?? '0'} EGP'),
+              _invoiceRow(theme, 'Service Fee', '${(d['serviceFee'] as num?)?.toStringAsFixed(0) ?? '0'} EGP'),
               const Divider(thickness: 2),
-              _invoiceRow('Total', '${(d['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', bold: true),
+              _invoiceRow(theme, 'Total', '${(d['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', bold: true),
               if (d['payment'] != null) ...[
                 const SizedBox(height: 16),
                 Text('Payment', style: Theme.of(ctx).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                _invoiceRow('Method', (d['payment'] as Map)['provider'] as String? ?? ''),
-                _invoiceRow('Status', (d['payment'] as Map)['status'] as String? ?? ''),
+                _invoiceRow(theme, 'Method', (d['payment'] as Map)['provider'] as String? ?? ''),
+                _invoiceRow(theme, 'Status', (d['payment'] as Map)['status'] as String? ?? ''),
               ],
             ],
           ),
         ),
-      ),
-    );
+      );
+    },
+  );
   }
 
-  Widget _invoiceRow(String label, String value, {bool bold = false}) {
+  Widget _invoiceRow(ThemeData theme, String label, String value, {bool bold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Text(label, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
           Text(value, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
         ],
       ),

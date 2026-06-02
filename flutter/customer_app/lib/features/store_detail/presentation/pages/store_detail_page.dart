@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lasthour_shared/models/store.dart';
 import '../bloc/store_detail_bloc.dart';
 import '../widgets/menu_item_card.dart';
 import '../../../../core/widgets/error_screen.dart';
 import '../../../../core/widgets/star_rating.dart';
+import '../../../../services/api_client.dart';
 import '../../../../injector.dart';
 
 class StoreDetailPage extends StatefulWidget {
@@ -58,6 +60,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   }
 
   Widget _buildContent(StoreDetailLoaded state) {
+    final theme = Theme.of(context);
     final store = state.store;
     final menu = state.menu;
     final reviews = state.reviews;
@@ -128,13 +131,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   }
 
   Widget _placeholderImage() {
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.grey.shade200,
-      child: const Center(child: Icon(Icons.store, size: 64, color: Colors.grey)),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Center(child: Icon(Icons.store, size: 64, color: theme.colorScheme.onSurfaceVariant)),
     );
   }
 
   Widget _buildInfoSection(Store store) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -146,26 +151,26 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             children: [
               StarRating(rating: store.ratingAvg, count: store.ratingCount),
               const SizedBox(width: 16),
-              Icon(Icons.location_on, size: 18, color: Colors.grey.shade500),
+              Icon(Icons.location_on, size: 18, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 4),
-              Text(store.city, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              Text(store.city, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
             ],
           ),
           if (store.description != null) ...[
             const SizedBox(height: 8),
-            Text(store.description!, style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+            Text(store.description!, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
           ],
           if (store.distanceM != null && store.distanceM! > 0) ...[
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.near_me, size: 16, color: Colors.grey.shade500),
+                Icon(Icons.near_me, size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   store.distanceM! < 1000
                       ? '${store.distanceM!.toStringAsFixed(0)} m away'
                       : '${(store.distanceM! / 1000).toStringAsFixed(1)} km away',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -174,10 +179,10 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: Colors.grey.shade500),
+                Icon(Icons.access_time, size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text('${store.opensAt} - ${store.closesAt}',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                    style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ],
@@ -203,6 +208,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   }
 
   Widget _buildReviewCard(Map<String, dynamic> review) {
+    final theme = Theme.of(context);
     final rating = review['rating'] as int? ?? 0;
     final comment = review['comment'] as String?;
     final imageUrl = review['imageUrl'] as String?;
@@ -230,7 +236,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ),
             if (comment != null && comment.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(comment, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+              Text(comment, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
             ],
             if (imageUrl != null && imageUrl.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -242,7 +248,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ],
             if (createdAt.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(createdAt, style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+              Text(createdAt, style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
             ],
           ],
         ),

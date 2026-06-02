@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lasthour_shared/models/user.dart';
 import '../bloc/profile_bloc.dart';
 import '../../../../services/api_client.dart';
 import '../../../../injector.dart';
@@ -33,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: BlocProvider.value(
@@ -59,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(state.message, style: const TextStyle(color: Colors.red)),
+                    Text(state.message, style: TextStyle(color: theme.colorScheme.error)),
                     const SizedBox(height: 16),
                     ElevatedButton(onPressed: () => _bloc.add(LoadProfile()), child: const Text('Retry')),
                   ],
@@ -81,6 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileContent(BuildContext context, User user) {
+    final theme = Theme.of(context);
     final displayName = user.email.split('@').first;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -97,15 +100,15 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 16),
           Text(displayName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          Text(user.email, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+          Text(user.email, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: user.role == 'merchant' ? Colors.orange.shade50 : Colors.blue.shade50,
+              color: user.role == 'merchant' ? theme.colorScheme.secondary : theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(user.role.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: user.role == 'merchant' ? Colors.orange.shade700 : Colors.blue.shade700)),
+            child: Text(user.role.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: user.role == 'merchant' ? theme.colorScheme.secondary : theme.colorScheme.primary)),
           ),
           const SizedBox(height: 32),
           _buildInfoTile(Icons.phone, 'Phone', _phoneController.text.isNotEmpty ? _phoneController.text : 'Not set'),
@@ -222,9 +225,9 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Logout', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+              icon: Icon(Icons.logout, color: theme.colorScheme.error),
+              label: Text('Logout', style: TextStyle(color: theme.colorScheme.error)),
+              style: OutlinedButton.styleFrom(side: BorderSide(color: theme.colorScheme.error)),
               onPressed: () => _confirmLogout(context),
             ),
           ),
@@ -235,16 +238,18 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildInfoTile(IconData icon, String label, String value) {
+    final theme = Theme.of(context);
     return Card(
       child: ListTile(
         leading: Icon(icon),
-        title: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        title: Text(label, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 
   void _confirmLogout(BuildContext context) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -257,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.pop(ctx);
               context.read<AuthBloc>().add(LogoutRequested());
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
             child: const Text('Logout'),
           ),
         ],
@@ -296,6 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showReferral(BuildContext context) async {
+    final theme = Theme.of(context);
     final api = sl<ApiClient>();
     final response = await api.get('/api/v1/referrals/info');
     if (response.isSuccess && response.data != null) {
@@ -310,14 +316,14 @@ class _ProfilePageState extends State<ProfilePage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.share, size: 48, color: Colors.blue),
+              Icon(Icons.share, size: 48, color: theme.colorScheme.primary),
               const SizedBox(height: 16),
-              Text('Your referral code:', style: TextStyle(color: Colors.grey.shade600)),
+              Text('Your referral code:', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(code, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),

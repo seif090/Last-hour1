@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
@@ -36,7 +35,7 @@ class ApiClient {
         )) {
     _dio.interceptors.addAll([
       _AuthInterceptor(_storage),
-      _RetryInterceptor(),
+      _RetryInterceptor(_dio),
       LogInterceptor(requestBody: true, responseBody: true, logPrint: (_) {}),
     ]);
   }
@@ -48,7 +47,7 @@ class ApiClient {
   Future<ApiResponse> get(String path, {Map<String, dynamic>? queryParams}) async {
     if (!_connectivity.isConnected) throw const NetworkException();
     try {
-      final response = await _dio.get(path, queryParameters: queryParams);
+      final response = await _dio.get<dynamic>(path, queryParameters: queryParams);
       return _process(response);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError) throw const NetworkException();
@@ -59,7 +58,7 @@ class ApiClient {
   Future<ApiResponse> post(String path, {Map<String, dynamic>? body}) async {
     if (!_connectivity.isConnected) throw const NetworkException();
     try {
-      final response = await _dio.post(path, data: body);
+      final response = await _dio.post<dynamic>(path, data: body);
       return _process(response);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError) throw const NetworkException();
@@ -70,7 +69,7 @@ class ApiClient {
   Future<ApiResponse> patch(String path, {Map<String, dynamic>? body}) async {
     if (!_connectivity.isConnected) throw const NetworkException();
     try {
-      final response = await _dio.patch(path, data: body);
+      final response = await _dio.patch<dynamic>(path, data: body);
       return _process(response);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError) throw const NetworkException();
@@ -81,7 +80,7 @@ class ApiClient {
   Future<ApiResponse> delete(String path) async {
     if (!_connectivity.isConnected) throw const NetworkException();
     try {
-      final response = await _dio.delete(path);
+      final response = await _dio.delete<dynamic>(path);
       return _process(response);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionError) throw const NetworkException();
@@ -89,7 +88,7 @@ class ApiClient {
     }
   }
 
-  ApiResponse _process(Response response) {
+  ApiResponse _process(Response<dynamic> response) {
     return ApiResponse(
       isSuccess: response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
       data: response.data is Map ? response.data as Map<String, dynamic> : {'result': response.data},
@@ -101,7 +100,7 @@ class ApiClient {
     final data = e.response?.data;
     String message = 'Something went wrong';
     if (data is Map) {
-      message = data['message'] ?? data['error'] ?? message;
+      message = (data['message'] ?? data['error'] ?? message) as String;
     } else if (data is String) {
       message = data;
     }
@@ -130,13 +129,16 @@ class _AuthInterceptor extends Interceptor {
 }
 
 class _RetryInterceptor extends Interceptor {
+  final Dio _dio;
+  _RetryInterceptor(this._dio);
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.type == DioExceptionType.connectionTimeout || err.type == DioExceptionType.receiveTimeout) {
       for (var i = 0; i < 2; i++) {
         try {
-          await Future.delayed(Duration(seconds: 1 << i));
-          final response = await err.requestOptions.copyWith().execute();
+          await Future<void>.delayed(Duration(seconds: 1 << i));
+          final response = await _dio.fetch<dynamic>(err.requestOptions.copyWith());
           handler.resolve(response);
           return;
         } catch (_) {}

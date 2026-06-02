@@ -79,7 +79,7 @@ class AddressesBloc extends Bloc<AddressesEvent, AddressesState> {
     try {
       final response = await _api.post('/api/v1/addresses', body: event.data);
       if (response.isSuccess) {
-        add(const LoadAddresses());
+        add(LoadAddresses());
       } else {
         emit(AddressesError(response.error ?? 'Failed to create address'));
       }
@@ -92,7 +92,7 @@ class AddressesBloc extends Bloc<AddressesEvent, AddressesState> {
     try {
       final response = await _api.patch('/api/v1/addresses/${event.id}', body: event.data);
       if (response.isSuccess) {
-        add(const LoadAddresses());
+        add(LoadAddresses());
       } else {
         emit(AddressesError(response.error ?? 'Failed to update address'));
       }
@@ -105,7 +105,7 @@ class AddressesBloc extends Bloc<AddressesEvent, AddressesState> {
     try {
       final response = await _api.delete('/api/v1/addresses/${event.id}');
       if (response.isSuccess) {
-        add(const LoadAddresses());
+        add(LoadAddresses());
       } else {
         emit(AddressesError(response.error ?? 'Failed to delete address'));
       }

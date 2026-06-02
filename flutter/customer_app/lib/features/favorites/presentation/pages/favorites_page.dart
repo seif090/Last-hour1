@@ -30,6 +30,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Saved Offers')),
       body: BlocProvider.value(
@@ -52,11 +53,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.favorite_border, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.favorite_border, size: 64, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(height: 16),
-                      Text('No saved offers yet', style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+                      Text('No saved offers yet', style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 8),
-                      Text('Tap the heart icon on offers to save them', style: TextStyle(color: Colors.grey.shade400)),
+                      Text('Tap the heart icon on offers to save them', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 );
@@ -78,6 +79,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildFavCard(BuildContext context, Map<String, dynamic> fav) {
+    final theme = Theme.of(context);
     final offer = fav['offer'] as Map<String, dynamic>? ?? fav;
     final store = offer['store'] as Map<String, dynamic>?;
     final title = offer['title'] as String? ?? '';
@@ -94,13 +96,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(imageUrl, width: 48, height: 48, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(Icons.local_offer, color: Colors.grey.shade400)),
+                    errorBuilder: (_, __, ___) => Icon(Icons.local_offer, color: theme.colorScheme.onSurfaceVariant)),
               )
-            : CircleAvatar(child: Icon(Icons.local_offer, color: Colors.grey.shade400)),
+            : CircleAvatar(child: Icon(Icons.local_offer, color: theme.colorScheme.onSurfaceVariant)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text('$price EGP${storeName.isNotEmpty ? ' • $storeName' : ''}'),
         trailing: IconButton(
-          icon: const Icon(Icons.favorite, color: Colors.red),
+          icon: Icon(Icons.favorite, color: theme.colorScheme.error),
           onPressed: () => _bloc.add(RemoveFavorite(offerId)),
         ),
         onTap: () => context.go('/offers/$offerId'),

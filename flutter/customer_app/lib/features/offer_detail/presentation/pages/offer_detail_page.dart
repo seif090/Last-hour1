@@ -8,6 +8,8 @@ import '../../../../core/widgets/loading_overlay.dart';
 import '../../../../core/widgets/error_screen.dart';
 import '../../../home/presentation/widgets/offer_timer.dart';
 import '../../../home/presentation/widgets/stock_indicator.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 import '../../../../injector.dart';
 
 class OfferDetailPage extends StatefulWidget {
@@ -37,6 +39,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: BlocProvider.value(
         value: _bloc,
@@ -97,10 +100,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _placeholderImage() {
-    return Container(color: Colors.grey.shade200, child: const Center(child: Icon(Icons.restaurant, size: 64, color: Colors.grey)));
+    final theme = Theme.of(context);
+    return Container(color: theme.colorScheme.surfaceContainerHighest, child: Center(child: Icon(Icons.restaurant, size: 64, color: theme.colorScheme.onSurfaceVariant)));
   }
 
   Widget _buildBody(BuildContext context, OfferDetailLoaded state) {
+    final theme = Theme.of(context);
     final offer = state.offer;
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -110,7 +115,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           Row(
             children: [
               Expanded(
-                child: Text(offer.storeName, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                child: Text(offer.storeName, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
               ),
               OfferTimer(endTime: offer.endTime),
             ],
@@ -118,7 +123,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           const SizedBox(height: 8),
           Text(offer.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(offer.productName, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(offer.productName, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -129,13 +134,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               const SizedBox(width: 12),
               Text(
                 '${offer.originalPrice.toStringAsFixed(0)} EGP',
-                style: const TextStyle(fontSize: 18, color: Colors.grey, decoration: TextDecoration.lineThrough),
+                style: TextStyle(fontSize: 18, color: theme.colorScheme.onSurfaceVariant, decoration: TextDecoration.lineThrough),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -155,7 +160,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   offer.distanceM < 1000
                       ? '${offer.distanceM.toStringAsFixed(0)} m away'
                       : '${(offer.distanceM / 1000).toStringAsFixed(1)} km away',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 ),
             ],
           ),
@@ -181,7 +186,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 const Spacer(),
                 Text(
                   'Max ${offer.maxPerCustomer}',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
@@ -214,14 +219,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.sold_out, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Sold out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                  color: theme.colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.block, color: theme.colorScheme.error),
+                    const SizedBox(width: 8),
+                    Text('Sold out', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.error)),
                 ],
               ),
             ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/staff_bloc.dart';
-import '../../../services/api_client.dart';
-import '../../../injector.dart';
+import '../../../../services/api_client.dart';
+import '../../../../injector.dart';
 
 class StaffPage extends StatefulWidget {
   const StaffPage({super.key});
@@ -42,6 +42,7 @@ class _StaffPageState extends State<StaffPage> {
         value: _bloc,
         child: BlocBuilder<StaffBloc, StaffState>(
           builder: (context, state) {
+            final theme = Theme.of(context);
             if (state is StaffLoading || state is StaffInitial) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -54,9 +55,9 @@ class _StaffPageState extends State<StaffPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.group_outlined, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.group_outlined, size: 64, color: theme.colorScheme.surfaceContainerHighest),
                       const SizedBox(height: 16),
-                      Text('No staff members', style: TextStyle(color: Colors.grey.shade500)),
+                      Text('No staff members', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.person_add),
@@ -85,8 +86,8 @@ class _StaffPageState extends State<StaffPage> {
                         child: Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: isActive ? Colors.green.shade50 : Colors.grey.shade100,
-                              child: Icon(Icons.person, color: isActive ? Colors.green : Colors.grey),
+                              backgroundColor: isActive ? theme.colorScheme.tertiary.withValues(alpha: 0.1) : theme.colorScheme.surfaceContainerHighest,
+                              child: Icon(Icons.person, color: isActive ? theme.colorScheme.tertiary : theme.colorScheme.onSurfaceVariant),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -94,15 +95,15 @@ class _StaffPageState extends State<StaffPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                  Text(email, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                  Text(email, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                                   Row(
                                     children: [
-                                      _roleChip(role),
+                                      _roleChip(role, theme),
                                       const SizedBox(width: 8),
-                                      Text(isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 11, color: isActive ? Colors.green : Colors.red.shade300)),
+                                      Text(isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 11, color: isActive ? theme.colorScheme.tertiary : theme.colorScheme.error)),
                                       if (invitedAt.isNotEmpty) ...[
                                         const SizedBox(width: 8),
-                                        Text('Invited: ${invitedAt.substring(0, 10)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+                                        Text('Invited: ${invitedAt.substring(0, 10)}', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
                                       ],
                                     ],
                                   ),
@@ -111,8 +112,8 @@ class _StaffPageState extends State<StaffPage> {
                             ),
                             PopupMenuButton<String>(
                               itemBuilder: (_) => [
-                                const PopupMenuItem(value: 'toggle', child: Text(isActive ? 'Deactivate' : 'Activate')),
-                                const PopupMenuItem(value: 'delete', child: Text('Remove', style: TextStyle(color: Colors.red))),
+                                PopupMenuItem(value: 'toggle', child: Text(isActive ? 'Deactivate' : 'Activate')),
+                                PopupMenuItem(value: 'delete', child: Text('Remove', style: TextStyle(color: theme.colorScheme.error))),
                               ],
                               onSelected: (action) {
                                 if (action == 'toggle') {
@@ -137,17 +138,17 @@ class _StaffPageState extends State<StaffPage> {
     );
   }
 
-  Widget _roleChip(String role) {
+  Widget _roleChip(String role, ThemeData theme) {
     Color color;
     switch (role) {
-      case 'admin': color = Colors.purple; break;
-      case 'manager': color = Colors.blue; break;
-      default: color = Colors.grey;
+      case 'admin': color = theme.colorScheme.tertiary; break;
+      case 'manager': color = theme.colorScheme.primary; break;
+      default: color = theme.colorScheme.onSurfaceVariant;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(role[0].toUpperCase() + role.substring(1), style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
@@ -155,6 +156,7 @@ class _StaffPageState extends State<StaffPage> {
   }
 
   void _confirmRemove(String id, String name) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -164,7 +166,7 @@ class _StaffPageState extends State<StaffPage> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () { Navigator.pop(ctx); _bloc.add(RemoveStaff(id)); },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text('Remove', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

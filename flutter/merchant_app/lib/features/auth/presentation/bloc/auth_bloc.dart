@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../services/api_client.dart';
+import '../../../../services/api_client.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -86,7 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       if (response.isSuccess && response.data != null) {
         final d = response.data!;
-        final token = d['accessToken'] ?? d['access_token'];
+        final token = (d['accessToken'] ?? d['access_token']) as String;
         final user = d['user'] as Map<String, dynamic>;
 
         if (user['role'] != 'merchant') {
@@ -95,11 +95,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
 
         await _storage.write(key: 'merchant_token', value: token);
-        await _storage.write(key: 'merchant_id', value: user['id']);
-        await _storage.write(key: 'merchant_email', value: user['email']);
+        await _storage.write(key: 'merchant_id', value: user['id'] as String);
+        await _storage.write(key: 'merchant_email', value: user['email'] as String);
 
         _api.setToken(token);
-        emit(Authenticated(token: token, merchantId: user['id']));
+        emit(Authenticated(token: token, merchantId: user['id'] as String));
       } else {
         emit(AuthError(response.error ?? 'Login failed'));
       }
@@ -124,7 +124,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       if (response.isSuccess && response.data != null) {
         final d = response.data!;
-        final token = d['accessToken'] ?? d['access_token'];
+        final token = (d['accessToken'] ?? d['access_token']) as String;
         _api.setToken(token);
 
         final merchantResp = await _api.post('/api/v1/merchant/register', body: {
@@ -135,8 +135,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         });
         if (merchantResp.isSuccess) {
           await _storage.write(key: 'merchant_token', value: token);
-          await _storage.write(key: 'merchant_id', value: (d['user'] as Map<String, dynamic>)['id']);
-          emit(Authenticated(token: token, merchantId: (d['user'] as Map<String, dynamic>)['id']));
+          await _storage.write(key: 'merchant_id', value: (d['user'] as Map<String, dynamic>)['id'] as String);
+          emit(Authenticated(token: token, merchantId: (d['user'] as Map<String, dynamic>)['id'] as String));
         } else {
           emit(AuthError(merchantResp.error ?? 'Merchant registration failed'));
         }

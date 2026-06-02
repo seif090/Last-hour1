@@ -32,7 +32,7 @@ class _AdminReferralsPageState extends State<AdminReferralsPage> {
         _referrals = (refRes.data!['referrals'] as List? ?? []);
       }
       if (statsRes.isSuccess && statsRes.data != null) {
-        _stats = statsRes.data as Map<String, dynamic>?;
+        _stats = statsRes.data;
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
@@ -98,7 +98,7 @@ class _AdminReferralsPageState extends State<AdminReferralsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/coupons_bloc.dart';
-import '../models/coupon.dart';
-import '../../../injector.dart';
-import '../../../services/api_client.dart';
+import '../../models/coupon.dart';
+import '../../../../injector.dart';
+import '../../../../services/api_client.dart';
 
 class CouponsPage extends StatefulWidget {
   const CouponsPage({super.key});
@@ -72,6 +72,7 @@ class _CouponsPageState extends State<CouponsPage> {
         value: _bloc,
         child: BlocBuilder<CouponsBloc, CouponsState>(
           builder: (context, state) {
+            final theme = Theme.of(context);
             if (_storesLoading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -93,9 +94,9 @@ class _CouponsPageState extends State<CouponsPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.card_giftcard, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.card_giftcard, size: 64, color: theme.colorScheme.surfaceContainerHighest),
                       const SizedBox(height: 16),
-                      Text('No coupons yet', style: TextStyle(color: Colors.grey.shade500)),
+                      Text('No coupons yet', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.add),
@@ -131,23 +132,23 @@ class _CouponsPageState extends State<CouponsPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(c.summary, style: TextStyle(color: Colors.grey.shade600)),
+                            Text(c.summary, style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                             if (c.description != null) ...[
                               const SizedBox(height: 4),
-                              Text(c.description!, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                              Text(c.description!, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                             ],
                             const SizedBox(height: 8),
-                            Text('Used ${c.currentUses}/${c.maxUses}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                            Text('Used ${c.currentUses}/${c.maxUses}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                             if (c.minOrderAmount != null)
-                              Text('Min order: ${c.minOrderAmount!.toStringAsFixed(0)} EGP', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                              Text('Min order: ${c.minOrderAmount!.toStringAsFixed(0)} EGP', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                             if (c.maxDiscount != null)
-                              Text('Max discount: ${c.maxDiscount!.toStringAsFixed(0)} EGP', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                              Text('Max discount: ${c.maxDiscount!.toStringAsFixed(0)} EGP', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                             if (c.expiresAt != null)
-                              Text('Expires: ${c.expiresAt!.substring(0, 10)}', style: TextStyle(color: Colors.red.shade300, fontSize: 12)),
+                              Text('Expires: ${c.expiresAt!.substring(0, 10)}', style: TextStyle(color: theme.colorScheme.error, fontSize: 12)),
                             const SizedBox(height: 8),
                             LinearProgressIndicator(
                               value: c.maxUses > 0 ? c.currentUses / c.maxUses : 0,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: theme.colorScheme.surfaceContainerHighest,
                             ),
                           ],
                         ),

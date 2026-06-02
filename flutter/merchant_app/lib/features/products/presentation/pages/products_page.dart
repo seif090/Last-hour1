@@ -55,6 +55,7 @@ class _ProductsPageState extends State<ProductsPage> {
             }
           },
           builder: (context, state) {
+            final theme = Theme.of(context);
             if (state is ProductsLoading && state is! ProductsLoaded) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -64,9 +65,9 @@ class _ProductsPageState extends State<ProductsPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.inventory_2_outlined, size: 64, color: theme.colorScheme.surfaceContainerHighest),
                       const SizedBox(height: 16),
-                      Text('No products yet', style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+                      Text('No products yet', style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 8),
                       ElevatedButton.icon(
                         onPressed: () => _showProductDialog(context),
@@ -91,7 +92,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(state.message, style: const TextStyle(color: Colors.red)),
+                    Text(state.message, style: TextStyle(color: theme.colorScheme.error)),
                     const SizedBox(height: 16),
                     ElevatedButton(onPressed: () => _bloc.add(LoadProducts()), child: const Text('Retry')),
                   ],
@@ -106,6 +107,7 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   Widget _buildProductCard(BuildContext context, Map<String, dynamic> product) {
+    final theme = Theme.of(context);
     final name = product['name'] as String? ?? '';
     final price = (product['original_price'] as num?)?.toDouble() ?? 0;
     final category = product['category'] as String?;
@@ -120,9 +122,9 @@ class _ProductsPageState extends State<ProductsPage> {
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(imageUrl, width: 48, height: 48, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(Icons.inventory_2, color: Colors.grey.shade400)),
+                    errorBuilder: (_, __, ___) => Icon(Icons.inventory_2, color: theme.colorScheme.onSurfaceVariant)),
               )
-            : CircleAvatar(child: Icon(Icons.inventory_2, color: Colors.grey.shade400)),
+            : CircleAvatar(child: Icon(Icons.inventory_2, color: theme.colorScheme.onSurfaceVariant)),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text('$price EGP${category != null ? ' • $category' : ''}'),
         trailing: Row(
@@ -132,10 +134,10 @@ class _ProductsPageState extends State<ProductsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('Inactive', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                child: Text('Inactive', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
               ),
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -213,6 +215,7 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   void _confirmDelete(BuildContext context, String id, String name) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -225,7 +228,7 @@ class _ProductsPageState extends State<ProductsPage> {
               _bloc.add(DeleteProduct(id));
               Navigator.pop(ctx);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],

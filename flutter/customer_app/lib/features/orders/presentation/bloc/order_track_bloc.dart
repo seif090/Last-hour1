@@ -143,7 +143,7 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
     final page = event.refresh ? 1 : (state is OrdersLoaded ? (state as OrdersLoaded).page + 1 : 1);
 
     if (event.refresh) {
-      emit(const OrdersLoading());
+      emit(OrdersLoading());
     } else if (state is OrdersLoaded) {
       emit((state as OrdersLoaded).copyWith(isLoadingMore: true));
     }

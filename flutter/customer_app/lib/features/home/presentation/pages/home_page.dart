@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchView() {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Padding(
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> {
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               filled: true,
-              fillColor: Colors.grey.shade100,
+              fillColor: theme.colorScheme.surfaceContainerHighest,
             ),
             onChanged: (q) {
               if (q.trim().isEmpty) {
@@ -116,7 +117,7 @@ class _HomePageState extends State<HomePage> {
               }
               if (state is SearchLoaded) {
                 if (state.results.isEmpty) {
-                  return Center(child: Text('No results for "${state.query}"', style: TextStyle(color: Colors.grey.shade500)));
+                  return Center(child: Text('No results for "${state.query}"', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)));
                 }
                 return InfiniteScrollList(
                   itemCount: state.results.length,
@@ -145,13 +146,13 @@ class _HomePageState extends State<HomePage> {
                 );
               }
               if (state is SearchEmpty) {
-                return Center(child: Text('No results for "${state.query}"', style: TextStyle(color: Colors.grey.shade500)));
+                return Center(child: Text('No results for "${state.query}"', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)));
               }
               if (state is SearchError) {
                 return ErrorScreen(message: state.message, onRetry: () {});
               }
               return Center(
-                child: Text('Search for offers by name or store', style: TextStyle(color: Colors.grey.shade400)),
+                child: Text('Search for offers by name or store', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
               );
             },
           ),
@@ -161,6 +162,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildOffersView() {
+    final theme = Theme.of(context);
     return BlocBuilder<OffersBloc, OffersState>(
       builder: (context, state) {
         if (state is OffersLoading && !(state is OffersLoaded)) {
@@ -184,14 +186,14 @@ class _HomePageState extends State<HomePage> {
                     ? Center(
                         child: Text(
                           'No offers nearby',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 16),
                         ),
                       )
                     : InfiniteScrollList(
                         itemCount: state.offers.length,
                         isLoading: state.isLoadingMore,
                         hasMore: state.hasMore,
-                        onLoadMore: () => context.read<OffersBloc>().add(const LoadMoreOffers()),
+                        onLoadMore: () => context.read<OffersBloc>().add(LoadMoreOffers()),
                         itemBuilder: (index) => BlocBuilder<FavoritesBloc, FavoritesState>(
                           builder: (ctx, favState) {
                             final offer = state.offers[index];

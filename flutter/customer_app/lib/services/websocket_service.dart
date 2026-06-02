@@ -9,7 +9,7 @@ class WebSocketService {
   WebSocketChannel? _channel;
   final _messageController = BehaviorSubject<Map<String, dynamic>>();
   final _connectionStatus = BehaviorSubject<bool>.seeded(false);
-  StreamSubscription? _subscription;
+  StreamSubscription<dynamic>? _subscription;
 
   Stream<Map<String, dynamic>> get messages => _messageController.stream;
   Stream<bool> get connectionStatus => _connectionStatus.stream;

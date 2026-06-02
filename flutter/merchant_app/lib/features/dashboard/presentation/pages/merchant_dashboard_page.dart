@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/hourly_chart.dart';
-import '../../../injector.dart';
-import '../../../services/api_client.dart';
+import '../../../../injector.dart';
+import '../../../../services/api_client.dart';
 
 class MerchantDashboardPage extends StatefulWidget {
   const MerchantDashboardPage({super.key});
@@ -52,6 +52,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final activeOffers = _stores.fold<int>(0, (sum, s) {
       final offers = s['offers'] as List<dynamic>? ?? [];
       return sum + offers.length;
@@ -86,7 +87,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     if (_stores.length > 1)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: Text('${_stores.length} stores', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                        child: Text('${_stores.length} stores', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
                       ),
                     GridView.count(
                       crossAxisCount: 2,
@@ -98,8 +99,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       children: [
                         MetricCard(label: 'Active Offers', value: '$activeOffers', icon: Icons.local_offer),
                         MetricCard(label: "Today's Orders", value: '$todayOrders', icon: Icons.receipt_long),
-                        MetricCard(label: "Today's Revenue", value: '${todayRevenue.toStringAsFixed(0)} EGP', icon: Icons.currency_pound, color: Colors.green),
-                        MetricCard(label: 'Total Products', value: '$totalProducts', icon: Icons.inventory_2, color: Colors.blue),
+                        MetricCard(label: "Today's Revenue", value: '${todayRevenue.toStringAsFixed(0)} EGP', icon: Icons.currency_pound, color: theme.colorScheme.tertiary),
+                        MetricCard(label: 'Total Products', value: '$totalProducts', icon: Icons.inventory_2, color: theme.colorScheme.primary),
                       ],
                     ),
                     if (hourlyData.isNotEmpty) ...[

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../services/api_client.dart';
+import '../../../../services/api_client.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -94,20 +94,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (response.isSuccess && response.data != null) {
         final d = response.data!;
-        final token = d['accessToken'] ?? d['access_token'];
+        final token = (d['accessToken'] ?? d['access_token']) as String;
         final user = d['user'] as Map<String, dynamic>;
 
         await _storage.write(key: 'access_token', value: token);
-        await _storage.write(key: 'user_id', value: user['id']);
-        await _storage.write(key: 'user_email', value: user['email']);
-        await _storage.write(key: 'user_role', value: user['role']);
+        await _storage.write(key: 'user_id', value: user['id'] as String);
+        await _storage.write(key: 'user_email', value: user['email'] as String);
+        await _storage.write(key: 'user_role', value: user['role'] as String);
 
         _api.setToken(token);
         emit(Authenticated(
           token: token,
-          userId: user['id'],
-          email: user['email'],
-          role: user['role'],
+          userId: user['id'] as String,
+          email: user['email'] as String,
+          role: user['role'] as String,
         ));
       } else {
         emit(AuthError(response.error ?? 'Login failed'));
@@ -128,20 +128,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (response.isSuccess && response.data != null) {
         final d = response.data!;
-        final token = d['accessToken'] ?? d['access_token'];
+        final token = (d['accessToken'] ?? d['access_token']) as String;
         final user = d['user'] as Map<String, dynamic>;
 
         await _storage.write(key: 'access_token', value: token);
-        await _storage.write(key: 'user_id', value: user['id']);
-        await _storage.write(key: 'user_email', value: user['email']);
-        await _storage.write(key: 'user_role', value: user['role']);
+        await _storage.write(key: 'user_id', value: user['id'] as String);
+        await _storage.write(key: 'user_email', value: user['email'] as String);
+        await _storage.write(key: 'user_role', value: user['role'] as String);
 
         _api.setToken(token);
         emit(Authenticated(
           token: token,
-          userId: user['id'],
-          email: user['email'],
-          role: user['role'],
+          userId: user['id'] as String,
+          email: user['email'] as String,
+          role: user['role'] as String,
         ));
       } else {
         emit(AuthError(response.error ?? 'Registration failed'));

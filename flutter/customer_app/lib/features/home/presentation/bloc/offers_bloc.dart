@@ -141,7 +141,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
     emit(state is OffersLoaded
         ? (state as OffersLoaded).copyWith(isLoadingMore: !event.refresh)
-        : const OffersLoading());
+        : OffersLoading());
 
     try {
       Position? pos;

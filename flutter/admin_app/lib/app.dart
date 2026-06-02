@@ -11,6 +11,7 @@ import 'features/coupons/presentation/pages/admin_coupons_page.dart';
 import 'features/referrals/presentation/pages/admin_referrals_page.dart';
 import 'features/system/presentation/pages/admin_system_page.dart';
 import 'injector.dart';
+import 'services/api_client.dart';
 import 'package:lasthour_shared/lasthour_shared.dart';
 
 class LastHourAdminApp extends StatelessWidget {

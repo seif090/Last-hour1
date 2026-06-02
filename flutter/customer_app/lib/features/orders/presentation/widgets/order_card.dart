@@ -89,7 +89,7 @@ class OrderCard extends StatelessWidget {
       case 'preparing':
         return theme.colorScheme.tertiary;
       case 'ready':
-        return Colors.green;
+        return theme.colorScheme.tertiary;
       case 'pickedUp':
         return theme.colorScheme.onSurfaceVariant;
       case 'cancelled':

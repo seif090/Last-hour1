@@ -19,7 +19,7 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
   void initState() {
     super.initState();
     _bloc = sl<MerchantOffersBloc>();
-    _bloc.add(const LoadMerchantOffers());
+    _bloc.add(LoadMerchantOffers());
   }
 
   @override
@@ -52,6 +52,7 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
             }
           },
           builder: (context, state) {
+            final theme = Theme.of(context);
             if (state is MerchantOffersLoading && state is! MerchantOffersLoaded) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -61,15 +62,15 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.local_offer_outlined, size: 64, color: Colors.grey.shade300),
+                      Icon(Icons.local_offer_outlined, size: 64, color: theme.colorScheme.surfaceContainerHighest),
                       const SizedBox(height: 16),
-                      Text('No offers yet', style: TextStyle(color: Colors.grey.shade500)),
+                      Text('No offers yet', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 );
               }
               return RefreshIndicator(
-                onRefresh: () async => _bloc.add(const LoadMerchantOffers()),
+                onRefresh: () async => _bloc.add(LoadMerchantOffers()),
                 child: ListView.builder(
                   itemCount: state.offers.length,
                   itemBuilder: (_, i) => MerchantOfferTile(
@@ -122,14 +123,14 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
               _bloc.add(EndOffer(offer.id));
               Navigator.pop(ctx);
             },
-            child: const Text('End Now', style: TextStyle(color: Colors.red)),
+            child: Text('End Now', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
           TextButton(
             onPressed: () {
               _bloc.add(DeleteOffer(offer.id));
               Navigator.pop(ctx);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('Delete', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
           TextButton(
             onPressed: () {
@@ -197,7 +198,7 @@ class _CreateOfferSheetState extends State<_CreateOfferSheet> {
   @override
   void initState() {
     super.initState();
-    widget.bloc.add(const LoadProducts());
+    widget.bloc.add(LoadProducts());
   }
 
   @override
@@ -229,8 +230,8 @@ class _CreateOfferSheetState extends State<_CreateOfferSheet> {
                   return DropdownButtonFormField<String>(
                     value: _productId,
                     decoration: const InputDecoration(labelText: 'Product', border: OutlineInputBorder()),
-                    items: state.products.map((p) => DropdownMenuItem(
-                      value: p['id'],
+                    items: state.products.map((p) => DropdownMenuItem<String>(
+                      value: p['id'] as String,
                       child: Text(p['name'] as String),
                     )).toList(),
                     onChanged: (v) => _productId = v,
@@ -308,8 +309,8 @@ class _EditOfferSheetState extends State<_EditOfferSheet> {
     _stockCtrl = TextEditingController(text: widget.offer.stockInitial.toString());
     _maxCtrl = TextEditingController(text: widget.offer.maxPerCustomer?.toString() ?? '1');
     _titleCtrl = TextEditingController(text: widget.offer.title);
-    _descCtrl = TextEditingController(text: widget.offer.description ?? '');
-    _tagsCtrl = TextEditingController(text: (widget.offer.tags as List?)?.join(', ') ?? '');
+    _descCtrl = TextEditingController(text: '');
+    _tagsCtrl = TextEditingController(text: '');
   }
 
   @override

@@ -8,6 +8,7 @@ class MenuItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final name = item['name'] as String? ?? '';
     final description = item['description'] as String?;
     final originalPrice = (item['original_price'] as num?)?.toDouble() ?? 0;
@@ -38,23 +39,23 @@ class MenuItemCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(imageUrl, width: 72, height: 72, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholderIcon()),
+                      errorBuilder: (_, __, ___) => _placeholderIcon(context)),
                 )
               else
-                _placeholderIcon(),
+                _placeholderIcon(context),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (category != null)
-                      Text(category, style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+                      Text(category, style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
                     Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     if (description != null) ...[
                       const SizedBox(height: 2),
                       Text(description, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                     ],
                     const SizedBox(height: 4),
                     if (hasActiveOffer && discountedPrice != null)
@@ -65,22 +66,22 @@ class MenuItemCard extends StatelessWidget {
                                   color: Theme.of(context).colorScheme.primary)),
                           const SizedBox(width: 6),
                           Text('$originalPrice EGP',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey,
-                                  decoration: TextDecoration.lineThrough)),
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant,
+                              decoration: TextDecoration.lineThrough)),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade50,
+                              color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text('Deal!', style: TextStyle(fontSize: 11, color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+                            child: Text('Deal!', style: TextStyle(fontSize: 11, color: theme.colorScheme.tertiary, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       )
                     else
                       Text('$originalPrice EGP / $unit',
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+                          style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -93,14 +94,15 @@ class MenuItemCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholderIcon() {
+  Widget _placeholderIcon(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: 72, height: 72,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(Icons.fastfood, color: Colors.grey),
+      child: Icon(Icons.fastfood, color: theme.colorScheme.onSurfaceVariant),
     );
   }
 }

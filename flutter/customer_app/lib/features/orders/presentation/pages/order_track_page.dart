@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/order_track_bloc.dart';
 import '../widgets/status_timeline.dart';
 import '../../../../core/widgets/error_screen.dart';
+import '../../../../services/api_client.dart';
+import '../../../../services/websocket_service.dart';
 import '../../../../injector.dart';
 
 class OrderTrackPage extends StatefulWidget {
@@ -31,6 +33,7 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Track Order')),
       body: BlocProvider.value(
@@ -62,7 +65,7 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
                     const SizedBox(height: 8),
                     Text(
                       order.storeName,
-                      style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 32),
                     StatusTimeline(
@@ -76,13 +79,13 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
                           padding: const EdgeInsets.all(16),
                           child: Row(
                             children: [
-                              const Icon(Icons.schedule, color: Colors.orange),
+                              Icon(Icons.schedule, color: theme.colorScheme.secondary),
                               const SizedBox(width: 12),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Estimated ready time',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text('Estimated ready time',
+                                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                                   Text(order.estimatedReadyAt!,
                                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                                 ],
@@ -114,27 +117,28 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
   }
 
   Widget _buildStatusIcon(String status) {
+    final theme = Theme.of(context);
     IconData icon;
     Color color;
     switch (status) {
       case 'pending':
         icon = Icons.hourglass_empty;
-        color = Colors.orange;
+        color = theme.colorScheme.secondary;
       case 'confirmed':
         icon = Icons.check_circle_outline;
-        color = Colors.blue;
+        color = theme.colorScheme.primary;
       case 'preparing':
         icon = Icons.restaurant;
-        color = Colors.purple;
+        color = theme.colorScheme.tertiary;
       case 'ready':
         icon = Icons.rocket_launch;
-        color = Colors.green;
+        color = theme.colorScheme.tertiary;
       case 'pickedUp':
         icon = Icons.check_circle;
-        color = Colors.grey;
+        color = theme.colorScheme.onSurfaceVariant;
       default:
         icon = Icons.cancel;
-        color = Colors.red;
+        color = theme.colorScheme.error;
     }
 
     return Container(
@@ -142,7 +146,7 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
       height: 100,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
       ),
       child: Icon(icon, size: 50, color: color),
     );

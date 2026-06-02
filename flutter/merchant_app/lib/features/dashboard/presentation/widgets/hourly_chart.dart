@@ -27,7 +27,7 @@ class HourlyChart extends StatelessWidget {
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         return BarTooltipItem(
                           '${group.x}:00\n${rod.toY.toStringAsFixed(0)} EGP',
-                          const TextStyle(color: Colors.white, fontSize: 12),
+                          TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: 12),
                         );
                       },
                     ),
