@@ -16,6 +16,8 @@ class MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveColor = color ?? theme.colorScheme.primary;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -24,9 +26,9 @@ class MetricCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: color ?? Theme.of(context).colorScheme.primary),
+                Icon(icon, size: 20, color: effectiveColor),
                 const SizedBox(width: 8),
-                Text(label, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                Text(label, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
             const SizedBox(height: 12),
@@ -35,7 +37,7 @@ class MetricCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: color ?? Theme.of(context).colorScheme.primary,
+                color: effectiveColor,
               ),
             ),
           ],

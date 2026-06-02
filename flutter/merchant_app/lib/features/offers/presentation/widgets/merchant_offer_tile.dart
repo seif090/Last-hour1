@@ -9,6 +9,7 @@ class MerchantOfferTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -17,12 +18,12 @@ class MerchantOfferTile extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: offer.isLowStock ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+            color: offer.isLowStock ? theme.colorScheme.error.withOpacity(0.1) : theme.colorScheme.tertiary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.local_offer,
-            color: offer.isLowStock ? Colors.red : Colors.green,
+            color: offer.isLowStock ? theme.colorScheme.error : theme.colorScheme.tertiary,
           ),
         ),
         title: Text(offer.title, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -31,7 +32,7 @@ class MerchantOfferTile extends StatelessWidget {
           offer.endTime.difference(DateTime.now()).inHours > 0
               ? '${offer.endTime.difference(DateTime.now()).inHours}h left'
               : '${offer.endTime.difference(DateTime.now()).inMinutes}m left',
-          style: TextStyle(fontSize: 12, color: offer.isLowStock ? Colors.red : Colors.grey),
+          style: TextStyle(fontSize: 12, color: offer.isLowStock ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant),
         ),
       ),
     );

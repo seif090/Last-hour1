@@ -12,18 +12,19 @@ class ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 15),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 24),

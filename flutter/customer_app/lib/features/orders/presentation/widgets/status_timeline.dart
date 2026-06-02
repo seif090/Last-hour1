@@ -53,6 +53,7 @@ class StatusTimeline extends StatelessWidget {
     required bool isLast,
     required bool isCurrent,
   }) {
+    final theme = Theme.of(context);
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,10 +67,10 @@ class StatusTimeline extends StatelessWidget {
                   height: isCurrent ? 20 : 14,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
-                    border: isCurrent ? Border.all(color: Colors.white, width: 3) : null,
+                    color: isActive ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+                    border: isCurrent ? Border.all(color: theme.colorScheme.surface, width: 3) : null,
                     boxShadow: isCurrent
-                        ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.4), blurRadius: 8)]
+                        ? [BoxShadow(color: theme.colorScheme.primary.withOpacity(0.4), blurRadius: 8)]
                         : null,
                   ),
                 ),
@@ -77,7 +78,7 @@ class StatusTimeline extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: isActive ? Theme.of(context).colorScheme.primary.withOpacity(0.3) : Colors.grey.shade200,
+                      color: isActive ? theme.colorScheme.primary.withOpacity(0.3) : theme.colorScheme.outlineVariant.withOpacity(0.5),
                     ),
                   ),
               ],
@@ -95,14 +96,14 @@ class StatusTimeline extends StatelessWidget {
                     style: TextStyle(
                       fontSize: isCurrent ? 16 : 14,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                      color: isActive ? Colors.black87 : Colors.grey,
+                      color: isActive ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   if (time != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       _formatTime(time),
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
                     ),
                   ],
                 ],

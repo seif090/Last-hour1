@@ -9,6 +9,7 @@ class StarRating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -23,7 +24,7 @@ class StarRating extends StatelessWidget {
         }),
         if (count > 0) ...[
           const SizedBox(width: 4),
-          Text('($count)', style: TextStyle(fontSize: size - 2, color: Colors.grey.shade600)),
+          Text('($count)', style: TextStyle(fontSize: size - 2, color: theme.colorScheme.onSurfaceVariant)),
         ],
       ],
     );

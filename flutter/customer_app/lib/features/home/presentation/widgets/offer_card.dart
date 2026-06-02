@@ -14,6 +14,7 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -35,7 +36,7 @@ class OfferCard extends StatelessWidget {
                           onTap: onStoreTap,
                           child: Text(
                             offer.storeName,
-                            style: const TextStyle(fontSize: 13, color: Colors.grey, decoration: TextDecoration.underline),
+                            style: TextStyle(fontSize: 13, color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -48,7 +49,7 @@ class OfferCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     offer.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -60,15 +61,15 @@ class OfferCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '${offer.originalPrice.toStringAsFixed(0)} EGP',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey,
+                          color: theme.colorScheme.onSurfaceVariant,
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
@@ -76,7 +77,7 @@ class OfferCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: theme.colorScheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -84,7 +85,7 @@ class OfferCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
@@ -96,20 +97,20 @@ class OfferCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                        Icon(Icons.location_on, size: 14, color: theme.colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text(
                           offer.distanceM < 1000
                               ? '${offer.distanceM.toStringAsFixed(0)} m'
                               : '${(offer.distanceM / 1000).toStringAsFixed(1)} km',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                         ),
                         const SizedBox(width: 12),
                         Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                         const SizedBox(width: 4),
                         Text(
                           '${offer.ratingAvg.toStringAsFixed(1)} (${offer.ratingCount})',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -124,8 +125,9 @@ class OfferCard extends StatelessWidget {
   }
 
   Widget _buildImageHeader(BuildContext context) {
+    final theme = Theme.of(context);
     if (offer.imageUrl == null) {
-      return _buildFallbackHeader();
+      return _buildFallbackHeader(theme);
     }
     return Stack(
       children: [
@@ -134,7 +136,7 @@ class OfferCard extends StatelessWidget {
           height: 120,
           width: double.infinity,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackHeader(),
+          errorBuilder: (_, __, ___) => _buildFallbackHeader(theme),
         ),
         if (offer.isLowStock)
           Positioned(
@@ -143,12 +145,12 @@ class OfferCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.red.shade600,
+                color: theme.colorScheme.error,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 'Low stock',
-                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.onError, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -158,8 +160,8 @@ class OfferCard extends StatelessWidget {
           child: IconButton(
             icon: Icon(
               isFavorited ? Icons.favorite : Icons.favorite_border,
-              color: isFavorited ? Colors.red : Colors.white,
-              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+              color: isFavorited ? theme.colorScheme.error : theme.colorScheme.onSurface,
+              shadows: [Shadow(color: theme.colorScheme.inverseSurface.withOpacity(0.5), blurRadius: 4)],
             ),
             onPressed: onFavoriteToggle,
           ),
@@ -168,21 +170,21 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFallbackHeader() {
+  Widget _buildFallbackHeader(ThemeData theme) {
     return Container(
       height: 120,
       width: double.infinity,
-      color: Colors.grey.shade200,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Stack(
         children: [
-          const Center(child: Icon(Icons.restaurant, size: 40, color: Colors.grey)),
+          Center(child: Icon(Icons.restaurant, size: 40, color: theme.colorScheme.onSurfaceVariant)),
           Positioned(
             top: 8,
             right: 8,
             child: IconButton(
               icon: Icon(
                 isFavorited ? Icons.favorite : Icons.favorite_border,
-                color: isFavorited ? Colors.red : Colors.grey,
+                color: isFavorited ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
               ),
               onPressed: onFavoriteToggle,
             ),

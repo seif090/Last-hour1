@@ -8,14 +8,15 @@ class StockIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final pct = initial > 0 ? remaining / initial : 0.0;
     Color color;
     if (pct <= 0.1) {
-      color = Colors.red;
+      color = theme.colorScheme.error;
     } else if (pct <= 0.3) {
-      color = Colors.orange;
+      color = theme.colorScheme.secondary;
     } else {
-      color = Colors.green;
+      color = theme.colorScheme.tertiary;
     }
 
     return Row(

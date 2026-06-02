@@ -14,12 +14,13 @@ class LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Stack(
       children: [
         child,
         if (isLoading)
           Container(
-            color: Colors.black26,
+            color: theme.colorScheme.scrim.withOpacity(0.2),
             child: Center(
               child: Card(
                 child: Padding(
@@ -30,7 +31,7 @@ class LoadingOverlay extends StatelessWidget {
                       const CircularProgressIndicator(),
                       if (message != null) ...[
                         const SizedBox(height: 16),
-                        Text(message!, style: const TextStyle(fontSize: 14)),
+                        Text(message!, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface)),
                       ],
                     ],
                   ),

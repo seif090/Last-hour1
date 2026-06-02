@@ -43,6 +43,7 @@ class _OfferTimerState extends State<OfferTimer> {
       return const SizedBox();
     }
 
+    final theme = Theme.of(context);
     final hours = _remaining.inHours;
     final minutes = _remaining.inMinutes.remainder(60);
     final seconds = _remaining.inSeconds.remainder(60);
@@ -52,13 +53,13 @@ class _OfferTimerState extends State<OfferTimer> {
 
     if (hours > 0) {
       text = '${hours}h ${minutes.toString().padLeft(2, '0')}m';
-      color = Colors.grey.shade600;
+      color = theme.colorScheme.onSurfaceVariant;
     } else if (minutes > 0) {
       text = '${minutes}m ${seconds.toString().padLeft(2, '0')}s';
-      color = Colors.orange.shade600;
+      color = theme.colorScheme.secondary;
     } else {
       text = '${seconds}s';
-      color = Colors.red.shade600;
+      color = theme.colorScheme.error;
     }
 
     return Row(

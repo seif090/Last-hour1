@@ -9,6 +9,7 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
@@ -22,10 +23,10 @@ class OrderCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.1),
+                  color: _statusColor(theme).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(_statusIcon, color: _statusColor, size: 28),
+                child: Icon(_statusIcon, color: _statusColor(theme), size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -34,19 +35,19 @@ class OrderCard extends StatelessWidget {
                   children: [
                     Text(
                       order.storeName,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: theme.colorScheme.onSurface),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       order.offerTitle,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '#${order.orderNumber}',
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                      style: TextStyle(color: theme.colorScheme.outline, fontSize: 12),
                     ),
                   ],
                 ),
@@ -56,18 +57,18 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     '${order.totalAmount.toStringAsFixed(0)} EGP',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface),
                   ),
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _statusColor.withOpacity(0.1),
+                      color: _statusColor(theme).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       _statusLabel,
-                      style: TextStyle(fontSize: 11, color: _statusColor, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 11, color: _statusColor(theme), fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -79,22 +80,22 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Color get _statusColor {
+  Color _statusColor(ThemeData theme) {
     switch (order.status) {
       case 'pending':
-        return Colors.orange;
+        return theme.colorScheme.secondary;
       case 'confirmed':
-        return Colors.blue;
+        return theme.colorScheme.primary;
       case 'preparing':
-        return Colors.purple;
+        return theme.colorScheme.tertiary;
       case 'ready':
         return Colors.green;
       case 'pickedUp':
-        return Colors.grey;
+        return theme.colorScheme.onSurfaceVariant;
       case 'cancelled':
-        return Colors.red;
+        return theme.colorScheme.error;
       default:
-        return Colors.grey;
+        return theme.colorScheme.onSurfaceVariant;
     }
   }
 

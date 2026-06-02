@@ -28,6 +28,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -42,7 +43,7 @@ class AppTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
       ),
     );
   }
