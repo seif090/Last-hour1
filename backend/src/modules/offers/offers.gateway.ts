@@ -104,7 +104,7 @@ export class OffersGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     });
   }
 
-  broadcastNewOffer(offer: any) {
+  broadcastNewOffer(offer: Record<string, unknown>) {
     // Broadcast to all nearby customers based on store location
     // In production: use Redis pub/sub for horizontal scaling
     this.server.emit('offer:created', { offer });

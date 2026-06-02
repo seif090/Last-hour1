@@ -7,7 +7,9 @@ export class StoresService {
 
   async findNearbyOffers(lat: number, lng: number, radiusM: number, category?: string, page = 1, limit = 20) {
     // Use materialized view for cached geo-results
-    const results: any = await this.prisma.$queryRawUnsafe(
+    const results = await this.prisma.$queryRawUnsafe<
+      Array<Record<string, unknown>>
+    >(
       `SELECT * FROM fn_nearby_offers($1, $2, $3, $4, $5)`,
       lat,
       lng,

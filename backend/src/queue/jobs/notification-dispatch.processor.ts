@@ -9,7 +9,7 @@ export interface NotificationPayload {
   type: 'order_confirmed' | 'order_ready' | 'offer_expiring' | 'new_nearby_offer' | 'payment_failed';
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, string>;
 }
 
 @Processor('notification-dispatch')

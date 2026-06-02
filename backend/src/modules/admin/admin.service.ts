@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 
@@ -47,7 +48,7 @@ export class AdminService {
   }
 
   async listMerchants(page = 1, limit = 20, verified?: boolean) {
-    const where: any = {};
+    const where: Prisma.MerchantWhereInput = {};
     if (verified !== undefined) where.isVerified = verified;
 
     const [merchants, total] = await Promise.all([
@@ -77,8 +78,8 @@ export class AdminService {
   }
 
   async listOffers(status?: string, page = 1, limit = 20) {
-    const where: any = {};
-    if (status) where.status = status;
+    const where: Prisma.OfferWhereInput = {};
+    if (status) where.status = status as any;
 
     const [offers, total] = await Promise.all([
       this.prisma.offer.findMany({
@@ -111,8 +112,8 @@ export class AdminService {
   }
 
   async listUsers(page = 1, limit = 20, role?: string) {
-    const where: any = {};
-    if (role) where.role = role;
+    const where: Prisma.UserWhereInput = {};
+    if (role) where.role = role as any;
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
@@ -144,8 +145,8 @@ export class AdminService {
   }
 
   async listOrders(page = 1, limit = 20, status?: string) {
-    const where: any = {};
-    if (status) where.status = status;
+    const where: Prisma.OrderWhereInput = {};
+    if (status) where.status = status as any;
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
