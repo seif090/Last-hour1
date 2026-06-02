@@ -44,7 +44,7 @@ describe('PaymentsService', () => {
     it('should route to StripeProvider for stripe', async () => {
       stripeMock.charge.mockResolvedValue({ provider: 'stripe', status: 'captured', amount: 100 });
 
-      const result = await service.charge({ provider: 'stripe', paymentMethodId: 'pm_test' }, { id: 'order-1', totalAmount: 100 });
+      const result = await service.charge({ provider: 'stripe', paymentMethodId: 'pm_test' }, { id: 'order-1', orderNumber: 'LH-000001', totalAmount: 100 });
 
       expect(stripeMock.charge).toHaveBeenCalled();
       expect(result.provider).toBe('stripe');
@@ -53,7 +53,7 @@ describe('PaymentsService', () => {
     it('should route to PaymobProvider for paymob', async () => {
       paymobMock.charge.mockResolvedValue({ provider: 'paymob', status: 'pending', amount: 100 });
 
-      const result = await service.charge({ provider: 'paymob' }, { id: 'order-2', totalAmount: 50 });
+      const result = await service.charge({ provider: 'paymob' }, { id: 'order-2', orderNumber: 'LH-000002', totalAmount: 50 });
 
       expect(paymobMock.charge).toHaveBeenCalled();
       expect(result.provider).toBe('paymob');
@@ -61,7 +61,7 @@ describe('PaymentsService', () => {
 
     it('should throw for unsupported provider', async () => {
       await expect(
-        service.charge({ provider: 'unknown' }, { id: 'order-1', totalAmount: 100 }),
+        service.charge({ provider: 'unknown' }, { id: 'order-1', orderNumber: 'LH-000003', totalAmount: 100 }),
       ).rejects.toThrow('Unsupported payment provider: unknown');
     });
   });

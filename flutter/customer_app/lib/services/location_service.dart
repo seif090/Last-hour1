@@ -12,10 +12,11 @@ class LocationService {
       }
     }
 
-    _currentPosition = await Geolocator.getCurrentPosition(
+    final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-    return _currentPosition!;
+    _currentPosition = position;
+    return position;
   }
 
   Future<bool> hasPermission() async {

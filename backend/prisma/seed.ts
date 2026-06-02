@@ -51,25 +51,28 @@ async function main() {
     },
   });
 
-  // @ts-ignore - prisma.store.create type issue
-  const store1 = await prisma.store.create({
-    data: {
-      merchantId: m1.id,
-      name: 'Bread Factory – Downtown',
-      slug: 'bread-factory-downtown',
-      description: 'Artisan bakery since 1990',
-      location: { type: 'Point', coordinates: [31.2357, 30.0444] } as any,
-      addressLine1: '15 Tahrir St',
-      city: 'Cairo',
-      district: 'Downtown',
-      cuisineType: 'bakery',
-      opensAt: '07:00:00',
-      closesAt: '22:00:00',
-      timezone: 'Africa/Cairo',
-      coverImageUrl: 'https://picsum.photos/seed/bakery1/800/400',
-      logoUrl: 'https://picsum.photos/seed/bakery1logo/200/200',
-    },
-  });
+  const [store1] = await prisma.$queryRawUnsafe<
+    Array<{ id: string }>
+  >(
+    `INSERT INTO "Store" (merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url)
+     VALUES ($1, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14)
+     RETURNING id`,
+    m1.id,
+    'Bread Factory – Downtown',
+    'bread-factory-downtown',
+    'Artisan bakery since 1990',
+    31.2357,
+    30.0444,
+    '15 Tahrir St',
+    'Cairo',
+    'Downtown',
+    'bakery',
+    '07:00:00',
+    '22:00:00',
+    'Africa/Cairo',
+    'https://picsum.photos/seed/bakery1/800/400',
+    'https://picsum.photos/seed/bakery1logo/200/200',
+  );
 
   const p1 = await prisma.product.create({
     data: {
@@ -128,25 +131,28 @@ async function main() {
     },
   });
 
-  // @ts-ignore - prisma.store.create type issue
-  const store2 = await prisma.store.create({
-    data: {
-      merchantId: m2.id,
-      name: 'Gourmet Kitchen – Zamalek',
-      slug: 'gourmet-kitchen-zamalek',
-      description: 'Mediterranean fine dining',
-      location: { type: 'Point', coordinates: [31.2180, 30.0656] } as any,
-      addressLine1: '42 Brazil St',
-      city: 'Cairo',
-      district: 'Zamalek',
-      cuisineType: 'mediterranean',
-      opensAt: '12:00:00',
-      closesAt: '23:00:00',
-      timezone: 'Africa/Cairo',
-      coverImageUrl: 'https://picsum.photos/seed/rest1/800/400',
-      logoUrl: 'https://picsum.photos/seed/rest1logo/200/200',
-    },
-  });
+  const [store2] = await prisma.$queryRawUnsafe<
+    Array<{ id: string }>
+  >(
+    `INSERT INTO "Store" (merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url)
+     VALUES ($1, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14)
+     RETURNING id`,
+    m2.id,
+    'Gourmet Kitchen – Zamalek',
+    'gourmet-kitchen-zamalek',
+    'Mediterranean fine dining',
+    31.2180,
+    30.0656,
+    '42 Brazil St',
+    'Cairo',
+    'Zamalek',
+    'mediterranean',
+    '12:00:00',
+    '23:00:00',
+    'Africa/Cairo',
+    'https://picsum.photos/seed/rest1/800/400',
+    'https://picsum.photos/seed/rest1logo/200/200',
+  );
 
   const p4 = await prisma.product.create({
     data: {

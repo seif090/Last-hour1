@@ -8,7 +8,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
-import { PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { OffersGateway } from '../offers/offers.gateway';
@@ -234,8 +234,8 @@ export class OrdersService {
   }
 
   async getUserOrders(userId: string, status?: string, page = 1, limit = 20) {
-    const where: any = { customerId: userId };
-    if (status) where.status = status;
+    const where: Prisma.OrderFindManyArgs['where'] = { customerId: userId };
+    if (status) where.status = status as OrderStatus;
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -254,7 +254,7 @@ export class OrdersService {
     return { orders, meta: { page, limit, total, hasMore: page * limit < total } };
   }
 
-  private async generateOrderNumber(tx: any): Promise<string> {
+  private async generateOrderNumber(tx: Prisma.TransactionClient): Promise<string> {
     let attempts = 0;
     while (attempts < 5) {
       const chars = this.orderNumberChars;

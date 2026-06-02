@@ -31,7 +31,7 @@ export class OffersController {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {
-        const decoded = this.jwtService.decode(token) as any;
+        const decoded = this.jwtService.decode(token) as { sub?: string };
         userId = decoded?.sub || null;
       } catch {
         // Ignore invalid token, treat as guest

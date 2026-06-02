@@ -41,9 +41,9 @@ class Store extends Equatable {
 
   factory Store.fromJson(Map<String, dynamic> json) {
     return Store(
-      id: json['id'],
-      name: json['name'],
-      slug: json['slug'],
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
       description: json['description'] as String?,
       cuisineType: json['cuisine_type'] as String?,
       ratingAvg: (json['rating_avg'] as num?)?.toDouble() ?? 0,

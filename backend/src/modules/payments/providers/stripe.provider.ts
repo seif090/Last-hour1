@@ -10,7 +10,7 @@ export class StripeProvider implements PaymentProvider {
 
   constructor(config: ConfigService) {
     this.stripe = new Stripe(config.get<string>('STRIPE_SECRET_KEY')!, {
-      apiVersion: '2025-02-30.acacia' as any,
+      apiVersion: '2023-10-16',
       maxNetworkRetries: 3,
     });
   }

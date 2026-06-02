@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { BusinessType, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { OffersGateway } from '../offers/offers.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -28,7 +29,7 @@ export class MerchantsService {
       data: {
         userId,
         businessName: data.businessName,
-        businessType: data.businessType as any,
+        businessType: data.businessType as BusinessType,
         description: data.description,
         taxId: data.taxId,
       },
@@ -171,8 +172,8 @@ export class MerchantsService {
     });
     const storeIds = stores.map((s) => s.id);
 
-    const where: any = { storeId: { in: storeIds } };
-    if (status) where.status = status as any;
+    const where: Prisma.OrderFindManyArgs['where'] = { storeId: { in: storeIds } };
+    if (status) where.status = status as OrderStatus;
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -231,7 +232,7 @@ export class MerchantsService {
     }
 
     const currentStatus = order.status;
-    const targetStatus = status as any;
+    const targetStatus = status as OrderStatus;
 
     // State machine check
     const validTransitions: Record<string, string[]> = {
@@ -252,7 +253,7 @@ export class MerchantsService {
 
     // 1. Transactionally update DB
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
-      const data: any = { status: targetStatus };
+      const data: Prisma.OrderUpdateInput = { status: targetStatus };
 
       if (targetStatus === 'picked_up') {
         data.pickedUpAt = new Date();

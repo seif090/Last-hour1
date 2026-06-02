@@ -5,6 +5,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { OffersGateway } from '../offers/offers.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { OrderPaymentInfo, PaymentChargeResult } from './providers/payment-provider.interface';
 
 @Injectable()
 export class PaymentsService {
@@ -26,8 +27,8 @@ export class PaymentsService {
       integrationId?: string;
       billingData?: Record<string, string>;
     },
-    order: any,
-  ) {
+    order: OrderPaymentInfo,
+  ): Promise<PaymentChargeResult> {
     switch (payment.provider) {
       case 'stripe':
         return this.stripeProvider.charge(payment, order);
@@ -41,20 +42,20 @@ export class PaymentsService {
   /**
    * Verify Paymob Webhook signature
    */
-  verifyPaymobWebhook(hmac: string, obj: any): boolean {
+  verifyPaymobWebhook(hmac: string, obj: Record<string, unknown>): boolean {
     return this.paymobProvider.verifyWebhook(hmac, obj);
   }
 
   /**
    * Process Paymob webhook transaction callback
    */
-  async handlePaymobWebhook(obj: any): Promise<void> {
+  async handlePaymobWebhook(obj: Record<string, unknown>): Promise<void> {
     const success = obj.success === true || obj.success === 'true';
     const pending = obj.pending === true || obj.pending === 'true';
-    const paymobOrder = obj.order;
-    const txId = obj.id;
+    const paymobOrder = obj.order as Record<string, unknown> | undefined;
+    const txId = obj.id as string | undefined;
 
-    const orderId = paymobOrder?.merchant_order_id;
+    const orderId = paymobOrder?.merchant_order_id as string | undefined;
     if (!orderId) {
       this.logger.warn('Paymob webhook received without merchant_order_id in payload');
       return;
