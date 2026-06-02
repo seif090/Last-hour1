@@ -54,14 +54,14 @@ export default function OfferDetailPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!offer) return null;
 
   const discount = Math.round((1 - offer.discountedPrice / offer.originalPrice) * 100);
 
   return (
     <div>
-      <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 cursor-pointer">
+      <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-on-surface mb-4 cursor-pointer">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
@@ -72,22 +72,22 @@ export default function OfferDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-2xl font-bold">{offer.title}</h1>
-                  <Link href={`/stores/${offer.store.id}`} className="flex items-center gap-1 text-orange-600 hover:text-orange-700 mt-1">
+                  <Link href={`/stores/${offer.store.id}`} className="flex items-center gap-1 text-primary hover:text-orange-700 mt-1">
                     <Store className="h-4 w-4" /> {offer.store.name}
                   </Link>
                 </div>
-                <button onClick={handleToggleFavorite} className="text-gray-400 hover:text-red-500 cursor-pointer">
+                <button onClick={handleToggleFavorite} className="text-on-surface-variant hover:text-red-500 cursor-pointer">
                   <Heart className="h-6 w-6" />
                 </button>
               </div>
 
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-3xl font-bold text-orange-600">{formatPrice(offer.discountedPrice)}</span>
-                <span className="text-lg text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                <span className="text-3xl font-bold text-primary">{formatPrice(offer.discountedPrice)}</span>
+                <span className="text-lg text-on-surface-variant line-through">{formatPrice(offer.originalPrice)}</span>
                 <Badge variant="danger">-{discount}%</Badge>
               </div>
 
-              {offer.description && <p className="mt-4 text-gray-600">{offer.description}</p>}
+              {offer.description && <p className="mt-4 text-on-surface-variant">{offer.description}</p>}
 
               <div className="flex flex-wrap gap-2 mt-4">
                 <Badge>{offer.product?.category}</Badge>
@@ -104,16 +104,16 @@ export default function OfferDetailPage() {
               <h3 className="font-semibold mb-4">Place Order</h3>
               <form onSubmit={handlePlaceOrder} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                  <label className="block text-sm font-medium text-on-surface mb-1">Quantity</label>
                   <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="rounded-lg border px-3 py-1.5 text-lg cursor-pointer hover:bg-gray-50">-</button>
+                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="rounded-lg border px-3 py-1.5 text-lg cursor-pointer hover:bg-surface-container">-</button>
                     <span className="text-xl font-semibold w-8 text-center">{quantity}</span>
-                    <button type="button" onClick={() => setQuantity(Math.min(offer.maxPerCustomer, quantity + 1))} className="rounded-lg border px-3 py-1.5 text-lg cursor-pointer hover:bg-gray-50">+</button>
+                    <button type="button" onClick={() => setQuantity(Math.min(offer.maxPerCustomer, quantity + 1))} className="rounded-lg border px-3 py-1.5 text-lg cursor-pointer hover:bg-surface-container">+</button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subtotal</label>
+                  <label className="block text-sm font-medium text-on-surface mb-1">Subtotal</label>
                   <p className="text-xl font-bold">{formatPrice(offer.discountedPrice * quantity)}</p>
                 </div>
 

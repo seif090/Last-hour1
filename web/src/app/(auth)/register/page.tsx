@@ -35,24 +35,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Clock className="h-8 w-8 text-orange-600" />
+            <Clock className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold">Last Hour</h1>
           </div>
-          <p className="text-center text-sm text-gray-600">Create your account</p>
+          <p className="text-center text-sm text-on-surface-variant">Create your account</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input id="email" label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
             <Input id="password" label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" required minLength={8} />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+              <label className="block text-sm font-medium text-on-surface mb-1">Account Type</label>
               <div className="flex gap-3">
                 {(['customer', 'merchant'] as const).map(r => (
-                  <button type="button" key={r} onClick={() => setRole(r)} className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${role === r ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`}>
+                  <button type="button" key={r} onClick={() => setRole(r)} className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${role === r ? 'border-orange-500 bg-primary/10 text-orange-700' : 'border-gray-300 bg-surface-container text-on-surface hover:bg-surface-container'}`}>
                     {r === 'customer' ? 'Customer' : 'Merchant'}
                   </button>
                 ))}
@@ -61,9 +61,9 @@ export default function RegisterPage() {
             <Input id="referral" label="Referral Code (optional)" value={referralCode} onChange={e => setReferralCode(e.target.value)} placeholder="LH-XXXXXX" />
             <Button type="submit" loading={loading} className="w-full">Create Account</Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-on-surface-variant">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-orange-600 hover:text-orange-700">Sign In</Link>
+            <Link href="/login" className="font-medium text-primary hover:text-orange-700">Sign In</Link>
           </p>
         </CardContent>
       </Card>

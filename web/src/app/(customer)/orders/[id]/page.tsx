@@ -76,12 +76,12 @@ export default function OrderDetailPage() {
     if (order?.offer?.id) router.push(`/offers/${order.offer.id}`);
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!order) return null;
 
   return (
     <div>
-      <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 cursor-pointer">
+      <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-on-surface mb-4 cursor-pointer">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
@@ -90,17 +90,17 @@ export default function OrderDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold">{order.orderNumber}</h1>
-              <p className="text-sm text-gray-500">{order.store?.name}</p>
+              <p className="text-sm text-on-surface-variant">{order.store?.name}</p>
             </div>
             <Badge variant={statusColors[order.status] || 'default'} className="text-sm px-3 py-1">{order.status}</Badge>
           </div>
 
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-gray-500">Date</span><span>{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Quantity</span><span>{order.quantity}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Unit Price</span><span>{formatPrice(order.unitPrice)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Service Fee</span><span>{formatPrice(order.serviceFee)}</span></div>
+            <div className="flex justify-between"><span className="text-on-surface-variant">Date</span><span>{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span></div>
+            <div className="flex justify-between"><span className="text-on-surface-variant">Quantity</span><span>{order.quantity}</span></div>
+            <div className="flex justify-between"><span className="text-on-surface-variant">Unit Price</span><span>{formatPrice(order.unitPrice)}</span></div>
+            <div className="flex justify-between"><span className="text-on-surface-variant">Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
+            <div className="flex justify-between"><span className="text-on-surface-variant">Service Fee</span><span>{formatPrice(order.serviceFee)}</span></div>
             {order.discountAmount > 0 && (
               <div className="flex justify-between text-green-600"><span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span><span>-{formatPrice(order.discountAmount)}</span></div>
             )}
@@ -122,7 +122,7 @@ export default function OrderDetailPage() {
             <div className="flex items-center gap-1 mb-3">
               {Array.from({ length: 5 }, (_, i) => (
                 <button key={i} type="button" onClick={() => setRating(i + 1)} className="cursor-pointer">
-                  <Star className={`h-6 w-6 ${i < rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
+                  <Star className={`h-6 w-6 ${i < rating ? 'text-yellow-500 fill-yellow-500' : 'text-on-surface-variant/50'}`} />
                 </button>
               ))}
             </div>

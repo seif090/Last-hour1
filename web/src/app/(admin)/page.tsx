@@ -18,16 +18,16 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
-  if (!stats) return <p className="text-gray-500">Failed to load stats.</p>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (!stats) return <p className="text-on-surface-variant">Failed to load stats.</p>;
 
   const cards = [
     { label: 'Users', value: stats.totalUsers, icon: Users, color: 'text-blue-600' },
-    { label: 'Merchants', value: stats.totalMerchants, icon: Store, color: 'text-orange-600' },
+    { label: 'Merchants', value: stats.totalMerchants, icon: Store, color: 'text-primary' },
     { label: 'Stores', value: stats.totalStores, icon: Store, color: 'text-green-600' },
     { label: 'Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'text-purple-600' },
     { label: 'Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'text-green-600' },
-    { label: 'Active Offers', value: stats.activeOffers, icon: Tag, color: 'text-orange-600' },
+    { label: 'Active Offers', value: stats.activeOffers, icon: Tag, color: 'text-primary' },
     { label: "Today's Orders", value: stats.todayOrders, icon: Activity, color: 'text-blue-600' },
   ];
 
@@ -42,7 +42,7 @@ export default function AdminDashboardPage() {
                 <card.icon className={`h-8 w-8 ${card.color}`} />
                 <div>
                   <p className="text-2xl font-bold">{card.value}</p>
-                  <p className="text-sm text-gray-500">{card.label}</p>
+                  <p className="text-sm text-on-surface-variant">{card.label}</p>
                 </div>
               </div>
             </CardContent>

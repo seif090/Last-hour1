@@ -27,13 +27,13 @@ export default function AdminOrdersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">All Orders</h1>
       {orders.length === 0 ? (
-        <div className="text-center py-12"><ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No orders found</p></div>
+        <div className="text-center py-12"><ShoppingBag className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" /><p className="text-on-surface-variant">No orders found</p></div>
       ) : (
         <div className="space-y-3">
           {orders.map(order => (
@@ -45,8 +45,8 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div>
-                    <span className="text-gray-600">{order.store?.name}</span>
-                    <span className="text-gray-400 ml-2">{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span>
+                    <span className="text-on-surface-variant">{order.store?.name}</span>
+                    <span className="text-on-surface-variant ml-2">{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span>
                   </div>
                   <span className="font-semibold">{formatPrice(order.totalAmount)}</span>
                 </div>

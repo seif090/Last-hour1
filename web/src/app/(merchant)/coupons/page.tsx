@@ -61,7 +61,7 @@ export default function MerchantCouponsPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
@@ -77,7 +77,7 @@ export default function MerchantCouponsPage() {
               <Input label="Store ID" value={storeId} onChange={e => setStoreId(e.target.value)} placeholder="Store ID" required />
               <Input label="Code" value={code} onChange={e => setCode(e.target.value)} placeholder="SUMMER20" required />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-on-surface mb-1">Type</label>
                 <select value={discountType} onChange={e => setDiscountType(e.target.value as 'percentage' | 'fixed')} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
                   <option value="percentage">Percentage</option>
                   <option value="fixed">Fixed Amount</option>
@@ -93,8 +93,8 @@ export default function MerchantCouponsPage() {
 
       {coupons.length === 0 ? (
         <div className="text-center py-12">
-          <TicketPercent className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No coupons yet</p>
+          <TicketPercent className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No coupons yet</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -104,22 +104,22 @@ export default function MerchantCouponsPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="font-mono font-bold">{coupon.code}</h3>
-                    {coupon.description && <p className="text-sm text-gray-500">{coupon.description}</p>}
+                    {coupon.description && <p className="text-sm text-on-surface-variant">{coupon.description}</p>}
                   </div>
                   <button onClick={() => handleToggle(coupon.id)} className="cursor-pointer">
                     <Badge variant={coupon.isActive ? 'success' : 'danger'}>{coupon.isActive ? 'Active' : 'Inactive'}</Badge>
                   </button>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium text-orange-600">
+                  <span className="font-medium text-primary">
                     {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : formatPrice(coupon.discountValue)}
                   </span>
-                  {coupon.minOrderAmount && <span className="text-gray-400">Min: {formatPrice(coupon.minOrderAmount)}</span>}
+                  {coupon.minOrderAmount && <span className="text-on-surface-variant">Min: {formatPrice(coupon.minOrderAmount)}</span>}
                 </div>
-                <div className="mt-2 text-xs text-gray-400">
+                <div className="mt-2 text-xs text-on-surface-variant">
                   Used {coupon.currentUses}/{coupon.maxUses}
                   <div className="mt-1 h-1.5 w-full rounded-full bg-gray-100">
-                    <div className="h-1.5 rounded-full bg-orange-500" style={{ width: `${Math.min(100, (coupon.currentUses / coupon.maxUses) * 100)}%` }} />
+                    <div className="h-1.5 rounded-full bg-primary" style={{ width: `${Math.min(100, (coupon.currentUses / coupon.maxUses) * 100)}%` }} />
                   </div>
                 </div>
               </CardContent>

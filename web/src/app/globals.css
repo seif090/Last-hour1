@@ -1,13 +1,82 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #f9fafb;
-  --color-foreground: #171717;
-  --font-sans: system-ui, -apple-system, sans-serif;
+  --color-surface: #1a1a2e;
+  --color-surface-dim: #151528;
+  --color-surface-bright: #2a2a44;
+  --color-surface-container-lowest: #121225;
+  --color-surface-container-low: #1d1d34;
+  --color-surface-container: #22223b;
+  --color-surface-container-high: #2d2d48;
+  --color-surface-container-highest: #383855;
+
+  --color-on-surface: #f1f1f9;
+  --color-on-surface-variant: #94a3b8;
+
+  --color-primary: #e94560;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #fc536d;
+  --color-on-primary-container: #40000e;
+  --color-primary-fixed: #ffdadb;
+  --color-primary-fixed-dim: #ffb2b7;
+
+  --color-secondary: #bbc5eb;
+  --color-on-secondary: #252f4d;
+  --color-secondary-container: #3b4665;
+
+  --color-tertiary: #67dc9f;
+  --color-on-tertiary: #003921;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+
+  --color-outline: rgba(255, 255, 255, 0.08);
+  --color-outline-variant: rgba(255, 255, 255, 0.18);
+
+  --color-background: #1a1a2e;
+  --color-on-background: #f1f1f9;
+
+  --font-display: Montserrat, sans-serif;
+  --font-body: Inter, sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+@utility glow-crimson {
+  box-shadow: 0 0 20px rgba(233, 69, 96, 0.35);
+}
+
+@utility glow-crimson-sm {
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.25);
+}
+
+@utility shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(233, 69, 96, 0.15) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
 }
 
 body {
   background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(233, 69, 96, 0.3);
 }

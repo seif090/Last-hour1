@@ -42,7 +42,7 @@ export default function MerchantOrdersPage() {
     loadOrders(status || undefined);
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
@@ -50,7 +50,7 @@ export default function MerchantOrdersPage() {
 
       <div className="flex flex-wrap gap-2 mb-6">
         {['', 'pending', 'confirmed', 'preparing', 'ready', 'picked_up', 'cancelled'].map(s => (
-          <button key={s} onClick={() => handleFilter(s)} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${statusFilter === s ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+          <button key={s} onClick={() => handleFilter(s)} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${statusFilter === s ? 'bg-primary text-white' : 'bg-gray-100 text-on-surface-variant hover:bg-gray-200'}`}>
             {s || 'All'}
           </button>
         ))}
@@ -58,21 +58,21 @@ export default function MerchantOrdersPage() {
 
       {orders.length === 0 ? (
         <div className="text-center py-12">
-          <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No orders found</p>
+          <ShoppingBag className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No orders found</p>
         </div>
       ) : (
         <div className="space-y-3">
           {orders.map(order => (
             <Link key={order.id} href={`/merchant/orders/${order.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
+              <Card className="hover:glow-crimson-sm transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{order.orderNumber}</span>
                     <Badge variant={statusColors[order.status] || 'default'}>{order.status}</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span>
+                    <span className="text-on-surface-variant">{formatDate(order.createdAt)} at {formatTime(order.createdAt)}</span>
                     <span className="font-semibold">{formatPrice(order.totalAmount)}</span>
                   </div>
                   {order.couponCode && <p className="text-xs text-green-600 mt-1">Coupon: {order.couponCode}</p>}

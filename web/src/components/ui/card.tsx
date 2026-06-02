@@ -1,20 +1,22 @@
-import { type HTMLAttributes } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('rounded-xl border bg-white shadow-sm', className)} {...props} />
+    <div className={cn('rounded-lg border border-outline bg-surface-container', className)} {...props}>
+      {children}
+    </div>
   );
 }
 
-export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('p-5 pb-0', className)} {...props} />;
+export function CardHeader({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('px-4 pt-4 pb-2', className)} {...props}>{children}</div>;
 }
 
-export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('p-5', className)} {...props} />;
+export function CardContent({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('p-4', className)} {...props}>{children}</div>;
 }
 
-export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('p-5 pt-0', className)} {...props} />;
+export function CardFooter({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('px-4 pb-4 pt-2 border-t border-outline', className)} {...props}>{children}</div>;
 }

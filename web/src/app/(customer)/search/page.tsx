@@ -40,28 +40,28 @@ export default function SearchPage() {
         <Button type="submit" loading={loading}><Search className="h-4 w-4" /></Button>
       </form>
 
-      {loading && <div className="flex justify-center py-8"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>}
+      {loading && <div className="flex justify-center py-8"><Clock className="h-8 w-8 animate-spin text-primary" /></div>}
 
       {!loading && searched && results.length === 0 && (
-        <p className="text-center text-gray-500 py-8">No results for &ldquo;{query}&rdquo;</p>
+        <p className="text-center text-on-surface-variant py-8">No results for &ldquo;{query}&rdquo;</p>
       )}
 
       {!loading && results.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2">
           {results.map(offer => (
             <Link key={offer.id} href={`/offers/${offer.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
+              <Card className="hover:glow-crimson-sm transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
-                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-orange-100 flex items-center justify-center">
-                      {offer.imageUrl ? <img src={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-lg object-cover" /> : <Tag className="h-8 w-8 text-orange-600" />}
+                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-primary/15 flex items-center justify-center">
+                      {offer.imageUrl ? <img src={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-lg object-cover" /> : <Tag className="h-8 w-8 text-primary" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold truncate">{offer.title}</h3>
-                      <p className="text-sm text-gray-500 truncate">{offer.store?.name}</p>
+                      <p className="text-sm text-on-surface-variant truncate">{offer.store?.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-lg font-bold text-orange-600">{formatPrice(offer.discountedPrice)}</span>
-                        <span className="text-sm text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                        <span className="text-lg font-bold text-primary">{formatPrice(offer.discountedPrice)}</span>
+                        <span className="text-sm text-on-surface-variant line-through">{formatPrice(offer.originalPrice)}</span>
                       </div>
                     </div>
                   </div>

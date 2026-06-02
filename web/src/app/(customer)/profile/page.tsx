@@ -53,11 +53,11 @@ export default function ProfilePage() {
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full bg-primary/15 flex items-center justify-center">
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
               ) : (
-                <User className="h-8 w-8 text-orange-600" />
+                <User className="h-8 w-8 text-primary" />
               )}
             </div>
             <div>
@@ -67,16 +67,16 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-3 text-gray-600">
+            <div className="flex items-center gap-3 text-on-surface-variant">
               <Mail className="h-4 w-4" /> {user.email}
             </div>
             {user.phone && (
-              <div className="flex items-center gap-3 text-gray-600">
+              <div className="flex items-center gap-3 text-on-surface-variant">
                 <Phone className="h-4 w-4" /> {user.phone}
               </div>
             )}
             {user.referralCode && (
-              <div className="flex items-center gap-3 text-gray-600">
+              <div className="flex items-center gap-3 text-on-surface-variant">
                 <Award className="h-4 w-4" /> Code: {user.referralCode}
               </div>
             )}
@@ -103,12 +103,12 @@ export default function ProfilePage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Register as Merchant</h3>
-              <button onClick={() => setShowMerchantForm(false)} className="cursor-pointer"><X className="h-5 w-5 text-gray-400" /></button>
+              <button onClick={() => setShowMerchantForm(false)} className="cursor-pointer"><X className="h-5 w-5 text-on-surface-variant" /></button>
             </div>
             <form onSubmit={handleMerchantRegister} className="space-y-3">
               <Input label="Business Name" value={businessName} onChange={e => setBusinessName(e.target.value)} required />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
+                <label className="block text-sm font-medium text-on-surface mb-1">Business Type</label>
                 <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
                   <option value="restaurant">Restaurant</option>
                   <option value="bakery">Bakery</option>

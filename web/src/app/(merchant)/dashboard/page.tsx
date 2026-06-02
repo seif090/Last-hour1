@@ -29,8 +29,8 @@ export default function MerchantDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
-  if (!data) return <p className="text-gray-500">Failed to load dashboard.</p>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (!data) return <p className="text-on-surface-variant">Failed to load dashboard.</p>;
 
   const totalOrders = data.stores.reduce((s, st) => s + st._count.orders, 0);
   const totalProducts = data.stores.reduce((s, st) => s + st._count.products, 0);
@@ -41,10 +41,10 @@ export default function MerchantDashboardPage() {
       <h1 className="text-2xl font-bold mb-6">Merchant Dashboard</h1>
 
       <div className="grid gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><Store className="h-8 w-8 text-orange-600" /><div><p className="text-2xl font-bold">{data.stores.length}</p><p className="text-sm text-gray-500">Stores</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><ShoppingBag className="h-8 w-8 text-blue-600" /><div><p className="text-2xl font-bold">{totalOrders}</p><p className="text-sm text-gray-500">Orders</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><Tag className="h-8 w-8 text-green-600" /><div><p className="text-2xl font-bold">{activeOffers}</p><p className="text-sm text-gray-500">Active Offers</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><LayoutDashboard className="h-8 w-8 text-purple-600" /><div><p className="text-2xl font-bold">{totalProducts}</p><p className="text-sm text-gray-500">Products</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><Store className="h-8 w-8 text-primary" /><div><p className="text-2xl font-bold">{data.stores.length}</p><p className="text-sm text-on-surface-variant">Stores</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><ShoppingBag className="h-8 w-8 text-blue-600" /><div><p className="text-2xl font-bold">{totalOrders}</p><p className="text-sm text-on-surface-variant">Orders</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><Tag className="h-8 w-8 text-green-600" /><div><p className="text-2xl font-bold">{activeOffers}</p><p className="text-sm text-on-surface-variant">Active Offers</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><LayoutDashboard className="h-8 w-8 text-purple-600" /><div><p className="text-2xl font-bold">{totalProducts}</p><p className="text-sm text-on-surface-variant">Products</p></div></div></CardContent></Card>
       </div>
 
       <h2 className="text-lg font-semibold mb-4">Your Stores</h2>
@@ -58,18 +58,18 @@ export default function MerchantDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4 text-sm text-gray-500 mb-3">
+              <div className="flex gap-4 text-sm text-on-surface-variant mb-3">
                 <span>{store._count.orders} orders</span>
                 <span>{store._count.products} products</span>
                 <span>{store.offers.length} active offers</span>
               </div>
               {store.offers.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-400">ACTIVE OFFERS</p>
+                  <p className="text-xs font-medium text-on-surface-variant">ACTIVE OFFERS</p>
                   {store.offers.map(o => (
                     <div key={o.id} className="flex items-center justify-between text-sm">
                       <span className="truncate">{o.title}</span>
-                      <span className="text-gray-500">{o.stockRemaining} left</span>
+                      <span className="text-on-surface-variant">{o.stockRemaining} left</span>
                     </div>
                   ))}
                 </div>

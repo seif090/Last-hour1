@@ -75,8 +75,8 @@ export default function AddressesPage() {
 
       {addresses.length === 0 ? (
         <div className="text-center py-12">
-          <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No addresses saved</p>
+          <MapPin className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No addresses saved</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -89,8 +89,8 @@ export default function AddressesPage() {
                       <span className="font-medium">{addr.label}</span>
                       {addr.isDefault && <Badge variant="info">Default</Badge>}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{addr.addressLine1}{addr.addressLine2 ? `, ${addr.addressLine2}` : ''}</p>
-                    <p className="text-sm text-gray-500">{addr.city}{addr.district ? `, ${addr.district}` : ''}</p>
+                    <p className="text-sm text-on-surface-variant mt-1">{addr.addressLine1}{addr.addressLine2 ? `, ${addr.addressLine2}` : ''}</p>
+                    <p className="text-sm text-on-surface-variant">{addr.city}{addr.district ? `, ${addr.district}` : ''}</p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(addr.id)} className="text-red-500">Delete</Button>
                 </div>

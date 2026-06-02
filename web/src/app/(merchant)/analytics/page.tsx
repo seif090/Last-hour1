@@ -19,8 +19,8 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [days]);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
-  if (!analytics) return <p className="text-gray-500">Failed to load analytics.</p>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (!analytics) return <p className="text-on-surface-variant">Failed to load analytics.</p>;
 
   const avgOrderValue = analytics.totalOrders > 0 ? analytics.totalRevenue / analytics.totalOrders : 0;
 
@@ -37,10 +37,10 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><ShoppingBag className="h-8 w-8 text-orange-600" /><div><p className="text-2xl font-bold">{analytics.totalOrders}</p><p className="text-sm text-gray-500">Total Orders</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><DollarSign className="h-8 w-8 text-green-600" /><div><p className="text-2xl font-bold">{formatPrice(analytics.totalRevenue)}</p><p className="text-sm text-gray-500">Total Revenue</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><TrendingUp className="h-8 w-8 text-blue-600" /><div><p className="text-2xl font-bold">{formatPrice(avgOrderValue)}</p><p className="text-sm text-gray-500">Avg Order Value</p></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><BarChart3 className="h-8 w-8 text-purple-600" /><div><p className="text-2xl font-bold">{analytics.daily.length}</p><p className="text-sm text-gray-500">Active Days</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><ShoppingBag className="h-8 w-8 text-primary" /><div><p className="text-2xl font-bold">{analytics.totalOrders}</p><p className="text-sm text-on-surface-variant">Total Orders</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><DollarSign className="h-8 w-8 text-green-600" /><div><p className="text-2xl font-bold">{formatPrice(analytics.totalRevenue)}</p><p className="text-sm text-on-surface-variant">Total Revenue</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><TrendingUp className="h-8 w-8 text-blue-600" /><div><p className="text-2xl font-bold">{formatPrice(avgOrderValue)}</p><p className="text-sm text-on-surface-variant">Avg Order Value</p></div></div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="flex items-center gap-3"><BarChart3 className="h-8 w-8 text-purple-600" /><div><p className="text-2xl font-bold">{analytics.daily.length}</p><p className="text-sm text-on-surface-variant">Active Days</p></div></div></CardContent></Card>
       </div>
 
       <h2 className="text-lg font-semibold mb-4">Daily Breakdown</h2>
@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{new Date(day.date).toLocaleDateString('en-EG', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 <div className="flex items-center gap-4 text-sm">
-                  <span className="text-gray-500">{day.orders} orders</span>
+                  <span className="text-on-surface-variant">{day.orders} orders</span>
                   <span className="font-semibold">{formatPrice(day.revenue)}</span>
                 </div>
               </div>

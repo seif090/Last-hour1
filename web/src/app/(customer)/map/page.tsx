@@ -10,7 +10,7 @@ import { MapPin, Clock } from 'lucide-react';
 import type { Store } from '@/lib/types';
 
 const MapView = dynamic(() => import('@/components/map-view'), { ssr: false, loading: () => (
-  <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>
+  <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>
 )});
 
 export default function MapPage() {
@@ -39,7 +39,7 @@ export default function MapPage() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
@@ -53,25 +53,25 @@ export default function MapPage() {
 
       {stores.length === 0 ? (
         <div className="text-center py-12">
-          <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Enable location to see nearby stores</p>
+          <MapPin className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">Enable location to see nearby stores</p>
         </div>
       ) : (
         <>
-          <p className="text-sm text-gray-500 mb-3">{stores.length} store{stores.length !== 1 ? 's' : ''} found within 5km</p>
+          <p className="text-sm text-on-surface-variant mb-3">{stores.length} store{stores.length !== 1 ? 's' : ''} found within 5km</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {stores.map(store => (
               <Link key={store.id} href={`/stores/${store.id}`}>
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:glow-crimson-sm transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
+                      <div className="h-12 w-12 rounded-lg bg-primary/15 flex items-center justify-center text-primary font-bold">
                         {store.name[0]}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">{store.name}</h3>
-                        <p className="text-sm text-gray-500 truncate">{store.addressLine1}</p>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                        <p className="text-sm text-on-surface-variant truncate">{store.addressLine1}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-on-surface-variant">
                           {store.cuisineType && <Badge variant="info">{store.cuisineType}</Badge>}
                           <span>{Number(store.ratingAvg).toFixed(1)} ★</span>
                         </div>

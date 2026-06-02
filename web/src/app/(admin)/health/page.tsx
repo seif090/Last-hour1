@@ -19,7 +19,7 @@ export default function AdminHealthPage() {
 
   useEffect(() => { loadHealth(); }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   const uptimeHours = health ? Math.floor(health.uptime / 3600) : 0;
   const uptimeMins = health ? Math.floor((health.uptime % 3600) / 60) : 0;
@@ -36,8 +36,8 @@ export default function AdminHealthPage() {
               <Badge variant={health?.status === 'ok' ? 'success' : 'danger'}>{health?.status || 'unreachable'}</Badge>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Uptime</span><span>{uptimeHours}h {uptimeMins}m</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Last Check</span><span>{health ? new Date(health.timestamp).toLocaleString() : 'N/A'}</span></div>
+              <div className="flex justify-between"><span className="text-on-surface-variant">Uptime</span><span>{uptimeHours}h {uptimeMins}m</span></div>
+              <div className="flex justify-between"><span className="text-on-surface-variant">Last Check</span><span>{health ? new Date(health.timestamp).toLocaleString() : 'N/A'}</span></div>
             </div>
           </CardContent>
         </Card>
@@ -48,10 +48,10 @@ export default function AdminHealthPage() {
               <Activity className="h-8 w-8 text-green-600" />
               <div>
                 <h3 className="font-semibold">All Systems</h3>
-                <p className="text-sm text-gray-500">Checking backend connectivity</p>
+                <p className="text-sm text-on-surface-variant">Checking backend connectivity</p>
               </div>
             </div>
-            <button onClick={loadHealth} className="text-sm text-orange-600 hover:text-orange-700 font-medium cursor-pointer">
+            <button onClick={loadHealth} className="text-sm text-primary hover:text-orange-700 font-medium cursor-pointer">
               Refresh Status
             </button>
           </CardContent>

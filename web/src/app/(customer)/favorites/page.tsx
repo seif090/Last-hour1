@@ -45,16 +45,16 @@ export default function FavoritesPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Saved Offers</h1>
       {items.length === 0 ? (
         <div className="text-center py-12">
-          <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No saved offers yet</p>
-          <Link href="/offers" className="text-orange-600 hover:text-orange-700 text-sm font-medium">Browse offers</Link>
+          <Heart className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No saved offers yet</p>
+          <Link href="/offers" className="text-primary hover:text-orange-700 text-sm font-medium">Browse offers</Link>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -62,15 +62,15 @@ export default function FavoritesPage() {
             <Card key={item.id}>
               <CardContent className="p-4">
                 <div className="flex gap-4">
-                  <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-orange-100 flex items-center justify-center">
-                    {item.offer.imageUrl ? <img src={item.offer.imageUrl} alt={item.offer.title} className="h-full w-full rounded-lg object-cover" /> : <Tag className="h-8 w-8 text-orange-600" />}
+                  <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-primary/15 flex items-center justify-center">
+                    {item.offer.imageUrl ? <img src={item.offer.imageUrl} alt={item.offer.title} className="h-full w-full rounded-lg object-cover" /> : <Tag className="h-8 w-8 text-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold truncate">{item.offer.title}</h3>
-                    <p className="text-sm text-gray-500 truncate">{item.offer.store?.name}</p>
+                    <p className="text-sm text-on-surface-variant truncate">{item.offer.store?.name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-lg font-bold text-orange-600">{formatPrice(item.offer.discountedPrice)}</span>
-                      <span className="text-sm text-gray-400 line-through">{formatPrice(item.offer.originalPrice)}</span>
+                      <span className="text-lg font-bold text-primary">{formatPrice(item.offer.discountedPrice)}</span>
+                      <span className="text-sm text-on-surface-variant line-through">{formatPrice(item.offer.originalPrice)}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <Link href={`/offers/${item.offerId}`}><Button size="sm">View</Button></Link>

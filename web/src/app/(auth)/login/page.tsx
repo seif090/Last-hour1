@@ -32,14 +32,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Clock className="h-8 w-8 text-orange-600" />
+            <Clock className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold">Last Hour</h1>
           </div>
-          <p className="text-center text-sm text-gray-600">Sign in to your account</p>
+          <p className="text-center text-sm text-on-surface-variant">Sign in to your account</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -47,9 +47,9 @@ export default function LoginPage() {
             <Input id="password" label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
             <Button type="submit" loading={loading} className="w-full">Sign In</Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-on-surface-variant">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-medium text-orange-600 hover:text-orange-700">Register</Link>
+            <Link href="/register" className="font-medium text-primary hover:text-orange-700">Register</Link>
           </p>
         </CardContent>
       </Card>

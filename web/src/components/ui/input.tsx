@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { type InputHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,30 +6,27 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, id, ...props }, ref) => {
-    return (
-      <div className="space-y-1">
-        {label && (
-          <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-            {label}
-          </label>
-        )}
-        <input
-          ref={ref}
-          id={id}
-          className={cn(
-            'block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:bg-gray-50',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
-            className,
-          )}
-          {...props}
-        />
-        {error && <p className="text-xs text-red-600">{error}</p>}
-      </div>
-    );
-  },
-);
-Input.displayName = 'Input';
+export function Input({ className, label, error, id, ...props }: InputProps) {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
-export { Input };
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <label htmlFor={inputId} className="block text-xs font-bold tracking-wider uppercase text-on-surface-variant">
+          {label}
+        </label>
+      )}
+      <input
+        id={inputId}
+        className={cn(
+          'w-full rounded-md bg-surface-container-high border px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 transition-all duration-150',
+          'border-outline focus:border-primary focus:glow-crimson-sm focus:outline-none',
+          error && 'border-error',
+          className,
+        )}
+        {...props}
+      />
+      {error && <p className="text-xs text-error">{error}</p>}
+    </div>
+  );
+}

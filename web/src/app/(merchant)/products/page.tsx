@@ -24,7 +24,7 @@ export default function MerchantProductsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
@@ -35,8 +35,8 @@ export default function MerchantProductsPage() {
 
       {products.length === 0 ? (
         <div className="text-center py-12">
-          <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No products yet</p>
+          <Package className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No products yet</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -47,10 +47,10 @@ export default function MerchantProductsPage() {
                   <h3 className="font-semibold">{product.name}</h3>
                   <Badge variant={product.isActive ? 'success' : 'danger'}>{product.isActive ? 'Active' : 'Inactive'}</Badge>
                 </div>
-                {product.description && <p className="text-sm text-gray-500 mb-2 line-clamp-2">{product.description}</p>}
+                {product.description && <p className="text-sm text-on-surface-variant mb-2 line-clamp-2">{product.description}</p>}
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{formatPrice(product.originalPrice)}</span>
-                  <span className="text-gray-400">{product.category} · {product.unit}</span>
+                  <span className="text-on-surface-variant">{product.category} · {product.unit}</span>
                 </div>
               </CardContent>
             </Card>

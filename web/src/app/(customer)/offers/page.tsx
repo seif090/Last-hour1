@@ -23,35 +23,35 @@ export default function OffersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Nearby Offers</h1>
       {offers.length === 0 ? (
-        <p className="text-center text-gray-500 py-12">No offers available right now.</p>
+        <p className="text-center text-on-surface-variant py-12">No offers available right now.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {offers.map(offer => (
             <Link key={offer.id} href={`/offers/${offer.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
+              <Card className="hover:glow-crimson-sm transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
-                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-orange-100 flex items-center justify-center">
+                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-primary/15 flex items-center justify-center">
                       {offer.imageUrl ? (
                         <img src={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-lg object-cover" />
                       ) : (
-                        <Tag className="h-8 w-8 text-orange-600" />
+                        <Tag className="h-8 w-8 text-primary" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold truncate">{offer.title}</h3>
-                      <p className="text-sm text-gray-500 truncate">{offer.store?.name}</p>
+                      <p className="text-sm text-on-surface-variant truncate">{offer.store?.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-lg font-bold text-orange-600">{formatPrice(offer.discountedPrice)}</span>
-                        <span className="text-sm text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                        <span className="text-lg font-bold text-primary">{formatPrice(offer.discountedPrice)}</span>
+                        <span className="text-sm text-on-surface-variant line-through">{formatPrice(offer.originalPrice)}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 mt-1 text-xs text-on-surface-variant">
                         <span>{offer.stockRemaining} left</span>
                         <Badge variant={offer.stockRemaining > 10 ? 'success' : 'danger'}>
                           {offer.stockRemaining > 10 ? 'Available' : 'Few left'}

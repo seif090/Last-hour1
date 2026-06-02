@@ -36,7 +36,7 @@ export default function MerchantOffersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div>
@@ -47,8 +47,8 @@ export default function MerchantOffersPage() {
 
       {offers.length === 0 ? (
         <div className="text-center py-12">
-          <Tag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No offers yet</p>
+          <Tag className="h-12 w-12 text-on-surface-variant/50 mx-auto mb-3" />
+          <p className="text-on-surface-variant">No offers yet</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -58,15 +58,15 @@ export default function MerchantOffersPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="font-semibold">{offer.title}</h3>
-                    <p className="text-sm text-gray-500">{offer.store?.name}</p>
+                    <p className="text-sm text-on-surface-variant">{offer.store?.name}</p>
                   </div>
                   <Badge variant={offer.status === 'active' ? 'success' : offer.status === 'draft' ? 'warning' : 'default'}>{offer.status}</Badge>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg font-bold text-orange-600">{formatPrice(offer.discountedPrice)}</span>
-                  <span className="text-sm text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                  <span className="text-lg font-bold text-primary">{formatPrice(offer.discountedPrice)}</span>
+                  <span className="text-sm text-on-surface-variant line-through">{formatPrice(offer.originalPrice)}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-400">
+                <div className="flex items-center gap-3 text-xs text-on-surface-variant">
                   <span>{offer.stockRemaining}/{offer.stockInitial} left</span>
                   <span>Ends {formatDate(offer.endTime)}</span>
                 </div>
