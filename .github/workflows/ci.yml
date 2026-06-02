@@ -162,9 +162,29 @@ jobs:
           JWT_SECRET: test-secret-that-is-at-least-32-chars-long!!
           NODE_ENV: test
 
+  web-build:
+    name: Web App Build
+    needs: lint-and-typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+
   docker-build:
     name: Build Docker Image
-    needs: [test, e2e-testcontainers]
+    needs: [test, e2e-testcontainers, web-build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
