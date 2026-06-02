@@ -8,6 +8,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
+import { PaymentStatus } from '@prisma/client';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { OffersGateway } from '../offers/offers.gateway';
@@ -127,11 +128,11 @@ export class OrdersService {
         });
 
         // ── Step 3.5: Charge Payment ──
-        const chargeResult = (await this.paymentsService.charge(dto.payment, {
+        const chargeResult = await this.paymentsService.charge(dto.payment, {
           id: newOrder.id,
           orderNumber,
           totalAmount,
-        })) as any;
+        });
 
         // Save Payment record in database
         const paymentRecord = await tx.payment.create({
@@ -140,7 +141,7 @@ export class OrdersService {
             provider: dto.payment.provider,
             providerTxId: chargeResult.providerTxId || null,
             amount: totalAmount,
-            status: chargeResult.status as any,
+            status: chargeResult.status as PaymentStatus,
             metadata: chargeResult.iframeUrl
               ? { iframeUrl: chargeResult.iframeUrl, paymentKey: chargeResult.paymentKey }
               : {},
@@ -205,7 +206,7 @@ export class OrdersService {
           provider: paymentDetails.provider,
           status: paymentDetails.status,
           amount: Number(paymentDetails.amount),
-          iframeUrl: (paymentDetails.metadata as any)?.iframeUrl || null,
+          iframeUrl: (paymentDetails.metadata as Record<string, string>)?.iframeUrl || null,
         },
         stock_remaining: remainingStock,
         message: order.status === 'pending' ? 'Payment redirection required' : null,

@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await this.prisma.user.create({
-      data: { email, passwordHash, role: role as any },
+      data: { email, passwordHash, role: role as UserRole },
     });
 
     return this.generateTokens(user.id, user.email, user.role);

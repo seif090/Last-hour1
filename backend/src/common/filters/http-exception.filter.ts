@@ -36,7 +36,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         scope.setTag('method', request.method);
         scope.setExtra('url', request.url);
         scope.setExtra('body', request.body);
-        scope.setExtra('requestId', (request as any).requestId);
+        scope.setExtra('requestId', request.requestId);
         Sentry.captureException(exception);
       });
     }
