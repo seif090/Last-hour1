@@ -1,5 +1,5 @@
 name: lasthour_shared
-description: Last Hour — Shared models, enums, and constants
+description: Last Hour — Shared models, enums, constants, and theme
 version: 1.0.0
 publish_to: none
 
@@ -11,3 +11,4 @@ dependencies:
     sdk: flutter
   equatable: ^2.0.5
   connectivity_plus: ^6.0.0
+  google_fonts: ^6.1.0

@@ -10,8 +10,7 @@ import 'features/coupons/presentation/pages/coupons_page.dart';
 import 'features/staff/presentation/pages/staff_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injector.dart';
-import 'package:lasthour_shared/src/services/connectivity_service.dart';
-import 'package:lasthour_shared/src/widgets/offline_banner.dart';
+import 'package:lasthour_shared/lasthour_shared.dart';
 
 class LastHourMerchantApp extends StatelessWidget {
   const LastHourMerchantApp({super.key});
@@ -23,32 +22,8 @@ class LastHourMerchantApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Last Hour — Merchant',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFFE53935),
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
-          ),
-          cardTheme: CardThemeData(
-            elevation: 1,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          brightness: Brightness.dark,
-          colorSchemeSeed: const Color(0xFFE53935),
-        ),
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
         builder: (context, child) {
           return StreamBuilder<bool>(

@@ -11,6 +11,7 @@ import 'features/coupons/presentation/pages/admin_coupons_page.dart';
 import 'features/referrals/presentation/pages/admin_referrals_page.dart';
 import 'features/system/presentation/pages/admin_system_page.dart';
 import 'injector.dart';
+import 'package:lasthour_shared/lasthour_shared.dart';
 
 class LastHourAdminApp extends StatelessWidget {
   const LastHourAdminApp({super.key});
@@ -22,7 +23,9 @@ class LastHourAdminApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Last Hour — Admin',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFF1A237E)),
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
         home: BlocBuilder<AdminAuthBloc, AdminAuthState>(
           builder: (context, state) {
             if (state is AdminAuthenticated) {
