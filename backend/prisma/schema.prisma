@@ -95,6 +95,8 @@ model User {
   referrals        User[]          @relation("UserReferrals")
   referralRewards  Referral[]      @relation("ReferralRewards")
   refereeRecords   Referral[]      @relation("ReferralReferee")
+  notificationPref NotificationPreference?
+  savedPaymentMethods SavedPaymentMethod[]
 
   @@index([email])
   @@index([role])
@@ -115,6 +117,42 @@ model DeviceToken {
   @@unique([userId, token])
   @@index([token])
   @@map("device_tokens")
+}
+
+model NotificationPreference {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  pushEnabled      Boolean  @default(true) @map("push_enabled")
+  orderConfirmed   Boolean  @default(true) @map("order_confirmed")
+  orderReady       Boolean  @default(true) @map("order_ready")
+  nearbyOffers     Boolean  @default(true) @map("nearby_offers")
+  promotions       Boolean  @default(true) @map("promotions")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model SavedPaymentMethod {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  provider        PaymentProvider
+  paymentMethodId String   @map("payment_method_id") @db.VarChar(255)
+  last4           String   @map("last4") @db.VarChar(4)
+  brand           String   @db.VarChar(50)
+  expiryMonth     Int?     @map("expiry_month")
+  expiryYear      Int?     @map("expiry_year")
+  isDefault       Boolean  @default(false) @map("is_default")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, paymentMethodId])
+  @@index([userId])
+  @@map("saved_payment_methods")
 }
 
 model Address {
@@ -152,9 +190,35 @@ model Merchant {
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   stores  Store[]
+  staff   StaffMember[]
 
   @@index([isVerified])
   @@map("merchants")
+}
+
+enum StaffRole {
+  admin
+  manager
+  staff
+}
+
+model StaffMember {
+  id         String      @id @default(uuid()) @db.Uuid
+  merchantId String      @map("merchant_id") @db.Uuid
+  email      String      @db.VarChar(255)
+  name       String      @db.VarChar(255)
+  role       StaffRole   @default(staff)
+  isActive   Boolean     @default(true) @map("is_active")
+  invitedAt  DateTime    @default(now()) @map("invited_at")
+  joinedAt   DateTime?   @map("joined_at") @db.Timestamptz
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, email])
+  @@index([merchantId])
+  @@map("staff_members")
 }
 
 model Store {
@@ -189,6 +253,7 @@ model Store {
   reviews   Review[]
   coupons   Coupon[]
 
+  @@index([merchantId])
   @@index([location]) /// GiST index created via raw SQL migration
   @@index([isActive])
   @@index([city])

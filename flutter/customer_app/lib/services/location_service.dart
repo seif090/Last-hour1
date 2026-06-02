@@ -3,6 +3,8 @@ import 'package:geolocator/geolocator.dart';
 class LocationService {
   Position? _currentPosition;
 
+  Position? get lastPosition => _currentPosition;
+
   Future<Position> getCurrentPosition() async {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {

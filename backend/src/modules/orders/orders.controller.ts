@@ -11,7 +11,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -32,6 +32,14 @@ export class OrdersController {
 
   @Get()
   @ApiOperation({ summary: 'List my orders' })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'startDate', required: false })
+  @ApiQuery({ name: 'endDate', required: false })
+  @ApiQuery({ name: 'minPrice', required: false, type: Number })
+  @ApiQuery({ name: 'maxPrice', required: false, type: Number })
+  @ApiQuery({ name: 'sort', required: false })
   async listOrders(
     @Req() req: any,
     @Query('status') status?: string,
@@ -54,6 +62,7 @@ export class OrdersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get order detail' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
   async getOrder(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
     const order = await this.ordersService.getOrder(id, req.user.id);
     return { success: true, data: order };
@@ -61,6 +70,7 @@ export class OrdersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Confirm pickup (customer)' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
   async confirmPickup(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
     const order = await this.ordersService.confirmPickup(id, req.user.id);
     return { success: true, data: order };
@@ -68,6 +78,7 @@ export class OrdersController {
 
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel an order (customer)' })
+  @ApiParam({ name: 'id', description: 'Order ID' })
   async cancelOrder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('reason') reason: string | undefined,

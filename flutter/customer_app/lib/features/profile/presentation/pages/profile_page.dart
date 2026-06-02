@@ -193,6 +193,24 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 8),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.credit_card_outlined),
+              title: const Text('Payment Methods'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/payment-methods'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.notifications_outlined),
+              title: const Text('Notifications'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/notification-preferences'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Refer a Friend'),
               subtitle: const Text('Share your referral code'),

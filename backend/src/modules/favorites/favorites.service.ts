@@ -6,7 +6,7 @@ export class FavoritesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async add(userId: string, offerId: string) {
-    const offer = await this.prisma.offer.findUnique({ where: { id: offerId } });
+    const offer = await this.prisma.offer.findUnique({ where: { id: offerId }, select: { id: true } });
     if (!offer) throw new NotFoundException('Offer not found');
 
     try {

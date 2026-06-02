@@ -2,6 +2,10 @@ import { IsString, IsNumber, IsOptional, IsIn, Min, MaxLength } from 'class-vali
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCouponDto {
+  @ApiPropertyOptional()
+  @IsOptional() @IsString()
+  storeId?: string;
+
   @ApiProperty()
   @IsString() @MaxLength(50)
   code: string;
@@ -36,6 +40,10 @@ export class CreateCouponDto {
 }
 
 export class ApplyCouponDto {
+  @ApiPropertyOptional()
+  @IsOptional() @IsString()
+  storeId?: string;
+
   @ApiProperty()
   @IsString()
   code: string;

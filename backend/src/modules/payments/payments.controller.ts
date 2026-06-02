@@ -8,7 +8,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 
 @ApiTags('Payments')
@@ -21,6 +21,7 @@ export class PaymentsController {
   @Post('paymob/webhook')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Paymob transaction callback webhook' })
+  @ApiQuery({ name: 'hmac', required: false })
   async paymobWebhook(
     @Query('hmac') hmac: string,
     @Body() body: Record<string, unknown>,

@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, UseGuards } from '@nestjs/common';
 import { IsString, IsIn } from 'class-validator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { DeviceTokensService } from './device-tokens.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -13,6 +13,7 @@ class RegisterTokenDto {
   platform: 'ios' | 'android' | 'web';
 }
 
+@ApiTags('Device Tokens')
 @Controller('device-tokens')
 export class DeviceTokensController {
   constructor(private readonly service: DeviceTokensService) {}
@@ -20,6 +21,7 @@ export class DeviceTokensController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOperation({ summary: 'Register device token' })
   async register(@CurrentUser('id') userId: string, @Body() dto: RegisterTokenDto) {
     return this.service.register(userId, dto.token, dto.platform);
   }
@@ -27,6 +29,7 @@ export class DeviceTokensController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('mine')
+  @ApiOperation({ summary: 'Get my device tokens' })
   async getMyTokens(@CurrentUser('id') userId: string) {
     return this.service.findByUser(userId);
   }

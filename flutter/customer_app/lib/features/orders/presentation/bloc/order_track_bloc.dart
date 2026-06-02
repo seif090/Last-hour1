@@ -12,6 +12,7 @@ abstract class OrderTrackEvent extends Equatable {
 }
 
 class LoadOrders extends OrderTrackEvent {
+  final bool refresh;
   final String? status;
   final String? startDate;
   final String? endDate;
@@ -19,6 +20,7 @@ class LoadOrders extends OrderTrackEvent {
   final double? maxPrice;
   final String? sort;
   const LoadOrders({
+    this.refresh = true,
     this.status,
     this.startDate,
     this.endDate,
@@ -27,6 +29,7 @@ class LoadOrders extends OrderTrackEvent {
     this.sort,
   });
 }
+class LoadMoreOrders extends OrderTrackEvent {}
 class LoadOrderDetail extends OrderTrackEvent {
   final String orderId;
   const LoadOrderDetail(this.orderId);
@@ -57,9 +60,32 @@ class OrderTrackInitial extends OrderTrackState {}
 class OrdersLoading extends OrderTrackState {}
 class OrdersLoaded extends OrderTrackState {
   final List<Order> orders;
-  const OrdersLoaded({this.orders = const []});
+  final bool hasMore;
+  final bool isLoadingMore;
+  final int page;
+  const OrdersLoaded({
+    this.orders = const [],
+    this.hasMore = true,
+    this.isLoadingMore = false,
+    this.page = 1,
+  });
+
+  OrdersLoaded copyWith({
+    List<Order>? orders,
+    bool? hasMore,
+    bool? isLoadingMore,
+    int? page,
+  }) {
+    return OrdersLoaded(
+      orders: orders ?? this.orders,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      page: page ?? this.page,
+    );
+  }
+
   @override
-  List<Object?> get props => [orders];
+  List<Object?> get props => [orders, hasMore, isLoadingMore, page];
 }
 class OrderDetailLoaded extends OrderTrackState {
   final Order order;
@@ -78,12 +104,19 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
   final ApiClient _api;
   final WebSocketService _ws;
   StreamSubscription? _wsSub;
+  String? _status;
+  String? _startDate;
+  String? _endDate;
+  double? _minPrice;
+  double? _maxPrice;
+  String? _sort;
 
   OrderTrackBloc({required ApiClient api, required WebSocketService ws})
       : _api = api,
         _ws = ws,
         super(OrderTrackInitial()) {
     on<LoadOrders>(_onLoadOrders);
+    on<LoadMoreOrders>(_onLoadMore);
     on<LoadOrderDetail>(_onLoadDetail);
     on<OrderStatusUpdated>(_onStatusUpdated);
     on<ConfirmPickup>(_onConfirmPickup);
@@ -100,28 +133,70 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
   }
 
   Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderTrackState> emit) async {
-    emit(OrdersLoading());
+    _status = event.status;
+    _startDate = event.startDate;
+    _endDate = event.endDate;
+    _minPrice = event.minPrice;
+    _maxPrice = event.maxPrice;
+    _sort = event.sort;
+
+    final page = event.refresh ? 1 : (state is OrdersLoaded ? (state as OrdersLoaded).page + 1 : 1);
+
+    if (event.refresh) {
+      emit(const OrdersLoading());
+    } else if (state is OrdersLoaded) {
+      emit((state as OrdersLoaded).copyWith(isLoadingMore: true));
+    }
+
     try {
-      final params = <String, String>{};
-      if (event.status != null) params['status'] = event.status!;
-      if (event.startDate != null) params['startDate'] = event.startDate!;
-      if (event.endDate != null) params['endDate'] = event.endDate!;
-      if (event.minPrice != null) params['minPrice'] = event.minPrice.toString();
-      if (event.maxPrice != null) params['maxPrice'] = event.maxPrice.toString();
-      if (event.sort != null) params['sort'] = event.sort!;
+      final params = <String, String>{'page': page.toString(), 'limit': '20'};
+      if (_status != null) params['status'] = _status!;
+      if (_startDate != null) params['startDate'] = _startDate!;
+      if (_endDate != null) params['endDate'] = _endDate!;
+      if (_minPrice != null) params['minPrice'] = _minPrice.toString();
+      if (_maxPrice != null) params['maxPrice'] = _maxPrice.toString();
+      if (_sort != null) params['sort'] = _sort!;
       final qs = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
       final response = await _api.get('/api/v1/orders${qs.isNotEmpty ? '?$qs' : ''}');
       if (response.isSuccess && response.data != null) {
         final orders = (response.data!['orders'] as List? ?? [])
             .map((j) => Order.fromJson(j as Map<String, dynamic>))
             .toList();
-        emit(OrdersLoaded(orders: orders));
+        final meta = response.data!['meta'] as Map<String, dynamic>? ?? {};
+        final hasMore = meta['hasMore'] as bool? ?? false;
+        final total = meta['total'] as int? ?? 0;
+
+        if (event.refresh) {
+          emit(OrdersLoaded(orders: orders, hasMore: hasMore, page: page));
+        } else {
+          final current = state as OrdersLoaded;
+          emit(OrdersLoaded(
+            orders: [...current.orders, ...orders],
+            hasMore: hasMore,
+            page: page,
+          ));
+        }
       } else {
-        emit(OrderTrackError(response.error ?? 'Failed to load orders'));
+        if (!event.refresh) {
+          emit((state as OrdersLoaded).copyWith(isLoadingMore: false));
+        } else {
+          emit(OrderTrackError(response.error ?? 'Failed to load orders'));
+        }
       }
     } catch (e) {
-      emit(OrderTrackError(e.toString()));
+      if (!event.refresh) {
+        emit((state as OrdersLoaded).copyWith(isLoadingMore: false));
+      } else {
+        emit(OrderTrackError(e.toString()));
+      }
     }
+  }
+
+  Future<void> _onLoadMore(LoadMoreOrders event, Emitter<OrderTrackState> emit) async {
+    if (state is! OrdersLoaded) return;
+    final current = state as OrdersLoaded;
+    if (current.isLoadingMore || !current.hasMore) return;
+    add(const LoadOrders(refresh: false));
   }
 
   Future<void> _onLoadDetail(LoadOrderDetail event, Emitter<OrderTrackState> emit) async {
@@ -182,12 +257,16 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
           subtotal: current.order.subtotal,
           serviceFee: current.order.serviceFee,
           totalAmount: current.order.totalAmount,
+          discountAmount: current.order.discountAmount,
+          couponCode: current.order.couponCode,
           currency: current.order.currency,
           estimatedReadyAt: event.estimatedReadyAt ?? current.order.estimatedReadyAt,
+          storeId: current.order.storeId,
           storeName: current.order.storeName,
           storeAddress: current.order.storeAddress,
           storeLat: current.order.storeLat,
           storeLng: current.order.storeLng,
+          offerId: current.order.offerId,
           offerTitle: current.order.offerTitle,
           offerImageUrl: current.order.offerImageUrl,
           createdAt: current.order.createdAt,
@@ -208,12 +287,16 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
             subtotal: o.subtotal,
             serviceFee: o.serviceFee,
             totalAmount: o.totalAmount,
+            discountAmount: o.discountAmount,
+            couponCode: o.couponCode,
             currency: o.currency,
             estimatedReadyAt: event.estimatedReadyAt ?? o.estimatedReadyAt,
+            storeId: o.storeId,
             storeName: o.storeName,
             storeAddress: o.storeAddress,
             storeLat: o.storeLat,
             storeLng: o.storeLng,
+            offerId: o.offerId,
             offerTitle: o.offerTitle,
             offerImageUrl: o.offerImageUrl,
             createdAt: o.createdAt,
@@ -222,7 +305,7 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
         }
         return o;
       }).toList();
-      emit(OrdersLoaded(orders: updated));
+      emit(OrdersLoaded(orders: updated, hasMore: current.hasMore, page: current.page));
     }
   }
 

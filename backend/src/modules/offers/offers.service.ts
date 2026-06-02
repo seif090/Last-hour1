@@ -1,11 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class OffersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async getOfferDetail(offerId: string, userId: string | null) {
+    if (!userId) {
+      const cached = await this.redis.getCachedOffer(offerId);
+      if (cached) return JSON.parse(cached);
+    }
+
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
       include: {
@@ -44,7 +53,7 @@ export class OffersService {
       });
     }
 
-    return {
+    const result = {
       id: offer.id,
       title: offer.title,
       description: offer.description,
@@ -58,5 +67,11 @@ export class OffersService {
       product: offer.product,
       customer_purchased_count: customerPurchasedCount,
     };
+
+    if (!userId) {
+      await this.redis.cacheOffer(offerId, JSON.stringify(result));
+    }
+
+    return result;
   }
 }

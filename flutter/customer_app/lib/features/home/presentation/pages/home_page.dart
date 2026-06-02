@@ -96,6 +96,10 @@ class _HomePageState extends State<HomePage> {
               fillColor: Colors.grey.shade100,
             ),
             onChanged: (q) {
+              if (q.trim().isEmpty) {
+                _searchBloc.add(ClearSearch());
+                return;
+              }
               final loc = sl<LocationService>().lastPosition;
               if (loc != null) {
                 _searchBloc.add(SearchOffers(query: q, lat: loc.latitude, lng: loc.longitude));
@@ -114,10 +118,12 @@ class _HomePageState extends State<HomePage> {
                 if (state.results.isEmpty) {
                   return Center(child: Text('No results for "${state.query}"', style: TextStyle(color: Colors.grey.shade500)));
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 16),
+                return InfiniteScrollList(
                   itemCount: state.results.length,
-                  itemBuilder: (_, i) => BlocBuilder<FavoritesBloc, FavoritesState>(
+                  isLoading: state.isLoadingMore,
+                  hasMore: state.hasMore,
+                  onLoadMore: () => _searchBloc.add(LoadMoreSearch()),
+                  itemBuilder: (i) => BlocBuilder<FavoritesBloc, FavoritesState>(
                     builder: (ctx, favState) {
                       final offer = state.results[i];
                       final isFav = favState is FavoritesLoaded && favState.favoritedMap[offer.id] == true;

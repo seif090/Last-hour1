@@ -82,10 +82,13 @@ export class MerchantsService {
     const totalFees = orders.reduce((sum, o) => sum + Number(o.serviceFee), 0);
     const itemsSold = orders.reduce((sum, o) => sum + o.quantity, 0);
 
-    const ordersByHour = Array.from({ length: 24 }, (_, i) => ({
-      hour: i,
-      count: orders.filter(o => new Date(o.createdAt).getHours() === i).length,
-    }));
+    const hourlyCounts = new Array(24).fill(0);
+    for (const o of orders) {
+      hourlyCounts[new Date(o.createdAt).getHours()]++;
+    }
+    const ordersByHour = hourlyCounts
+      .map((count, hour) => ({ hour, count }))
+      .filter(h => h.count > 0);
 
     return {
       date: today.toISOString().slice(0, 10),
@@ -96,7 +99,7 @@ export class MerchantsService {
       itemsSold,
       offersActive: offers.filter(o => o.status === 'active').length,
       offersSoldOut: offers.filter(o => o.status === 'sold_out').length,
-      ordersByHour: ordersByHour.filter(h => h.count > 0),
+      ordersByHour,
     };
   }
 
@@ -380,6 +383,14 @@ export class MerchantsService {
     return this.prisma.store.update({ where: { id: storeId }, data });
   }
 
+  async getFirstStoreId(userId: string): Promise<string> {
+    const merchant = await this.prisma.merchant.findUnique({ where: { userId } });
+    if (!merchant) throw new BadRequestException('Merchant profile not found');
+    const store = await this.prisma.store.findFirst({ where: { merchantId: merchant.id } });
+    if (!store) throw new BadRequestException('No store found for this merchant');
+    return store.id;
+  }
+
   async getAnalytics(merchantId: string, days: number) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -442,6 +453,90 @@ export class MerchantsService {
         revenue: data.revenue,
       })),
       stores: stores.length,
+    };
+  }
+
+  async generateCsvReport(merchantId: string, days: number, storeId?: string) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const stores = await this.prisma.store.findMany({
+      where: { merchantId, ...(storeId ? { id: storeId } : {}) },
+      select: { id: true, name: true },
+    });
+    const storeIds = stores.map((s) => s.id);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        storeId: { in: storeIds },
+        createdAt: { gte: startDate },
+      },
+      include: {
+        store: { select: { name: true } },
+        customer: { select: { email: true } },
+        payment: { select: { provider: true, status: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const header = 'Order#,Date,Status,Store,Customer,Items,Subtotal,Discount,Fee,Total,Payment,Payment Status\n';
+    const rows = orders.map((o) =>
+      [
+        o.orderNumber,
+        o.createdAt.toISOString().split('T')[0],
+        o.status,
+        `"${o.store.name}"`,
+        o.customer.email,
+        o.quantity,
+        Number(o.subtotal).toFixed(2),
+        Number(o.discountAmount).toFixed(2),
+        Number(o.serviceFee).toFixed(2),
+        Number(o.totalAmount).toFixed(2),
+        o.payment?.provider ?? '',
+        o.payment?.status ?? '',
+      ].join(','),
+    );
+
+    return header + rows.join('\n');
+  }
+
+  async getInvoice(merchantId: string, orderId: string) {
+    const stores = await this.prisma.store.findMany({
+      where: { merchantId },
+      select: { id: true },
+    });
+    const storeIds = stores.map((s) => s.id);
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, storeId: { in: storeIds } },
+      include: {
+        items: true,
+        payment: true,
+        store: { select: { id: true, name: true, addressLine1: true, city: true, logoUrl: true } },
+        customer: { select: { id: true, email: true, phone: true } },
+        coupon: { select: { code: true } },
+        offer: { select: { id: true, title: true } },
+      },
+    });
+
+    if (!order) throw new BadRequestException('Order not found');
+
+    return {
+      invoiceNumber: `INV-${order.orderNumber}`,
+      orderNumber: order.orderNumber,
+      createdAt: order.createdAt,
+      status: order.status,
+      store: order.store,
+      customer: order.customer,
+      offer: order.offer,
+      items: order.items,
+      subtotal: Number(order.subtotal),
+      discountAmount: Number(order.discountAmount),
+      couponCode: order.coupon?.code ?? null,
+      serviceFee: Number(order.serviceFee),
+      totalAmount: Number(order.totalAmount),
+      currency: order.currency,
+      payment: order.payment ? { provider: order.payment.provider, status: order.payment.status, paidAt: order.payment.paidAt } : null,
     };
   }
 }

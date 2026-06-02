@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { IsString, IsIn, IsOptional } from 'class-validator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Request } from 'express';
 import { S3Service } from './uploads.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -17,6 +17,7 @@ class PresignedUrlDto {
   contentType?: string;
 }
 
+@ApiTags('Uploads')
 @Controller('uploads')
 export class UploadsController {
   constructor(private readonly s3: S3Service) {}
@@ -24,6 +25,7 @@ export class UploadsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('presigned-url')
+  @ApiOperation({ summary: 'Get presigned upload URL' })
   async presignedUrl(@Req() req: Request, @Body() dto: PresignedUrlDto) {
     const userId = req.user!.id;
     const ext = dto.extension === 'jpeg' ? 'jpg' : dto.extension;

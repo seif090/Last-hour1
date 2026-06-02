@@ -7,6 +7,8 @@ import 'features/users/presentation/pages/admin_users_page.dart';
 import 'features/merchants/presentation/pages/admin_merchants_page.dart';
 import 'features/orders/presentation/pages/admin_orders_page.dart';
 import 'features/offers/presentation/pages/admin_offers_page.dart';
+import 'features/coupons/presentation/pages/admin_coupons_page.dart';
+import 'features/referrals/presentation/pages/admin_referrals_page.dart';
 import 'features/system/presentation/pages/admin_system_page.dart';
 import 'injector.dart';
 
@@ -50,6 +52,8 @@ class _AdminShellState extends State<AdminShell> {
     AdminMerchantsPage(),
     AdminOrdersPage(),
     AdminOffersPage(),
+    AdminCouponsPage(),
+    AdminReferralsPage(),
     AdminSystemPage(),
   ];
 
@@ -66,6 +70,8 @@ class _AdminShellState extends State<AdminShell> {
           NavigationDestination(icon: Icon(Icons.store), label: 'Merchants'),
           NavigationDestination(icon: Icon(Icons.receipt_long), label: 'Orders'),
           NavigationDestination(icon: Icon(Icons.local_offer), label: 'Offers'),
+          NavigationDestination(icon: Icon(Icons.card_giftcard), label: 'Coupons'),
+          NavigationDestination(icon: Icon(Icons.share), label: 'Referrals'),
           NavigationDestination(icon: Icon(Icons.monitor_heart), label: 'System'),
         ],
       ),

@@ -107,6 +107,16 @@ class ApiClient {
     }
   }
 
+  Future<String?> downloadString(String path, {Map<String, dynamic>? queryParams}) async {
+    if (!_connectivity.isConnected) throw const NetworkException();
+    try {
+      final response = await _dio.get(path, queryParameters: queryParams, options: Options(responseType: ResponseType.plain));
+      return response.data as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   ApiResponse _process(Response response) {
     return ApiResponse(
       isSuccess: response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,

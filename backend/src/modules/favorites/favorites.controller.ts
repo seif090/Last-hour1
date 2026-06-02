@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Delete, Param, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { Request } from 'express';
 import { FavoritesService } from './favorites.service';
 
@@ -20,6 +20,7 @@ export class FavoritesController {
 
   @Post(':offerId')
   @ApiOperation({ summary: 'Add offer to favorites' })
+  @ApiParam({ name: 'offerId', description: 'Offer ID' })
   async add(@Param('offerId') offerId: string, @Req() req: Request) {
     const fav = await this.favoritesService.add(req.user!.id, offerId);
     return { success: true, data: fav };
@@ -27,6 +28,7 @@ export class FavoritesController {
 
   @Delete(':offerId')
   @ApiOperation({ summary: 'Remove offer from favorites' })
+  @ApiParam({ name: 'offerId', description: 'Offer ID' })
   async remove(@Param('offerId') offerId: string, @Req() req: Request) {
     await this.favoritesService.remove(req.user!.id, offerId);
     return { success: true };
@@ -34,6 +36,7 @@ export class FavoritesController {
 
   @Get('check/:offerId')
   @ApiOperation({ summary: 'Check if offer is favorited' })
+  @ApiParam({ name: 'offerId', description: 'Offer ID' })
   async check(@Param('offerId') offerId: string, @Req() req: Request) {
     const favorited = await this.favoritesService.isFavorited(req.user!.id, offerId);
     return { favorited };

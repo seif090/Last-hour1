@@ -39,7 +39,10 @@ export class OrdersService {
     // ── Step 1: Validate offer exists and is active ──────────
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
-      include: { store: true, product: true },
+      include: {
+        store: { select: { id: true, name: true, merchantId: true } },
+        product: { select: { id: true, name: true } },
+      },
     });
 
     if (!offer) throw new BadRequestException('Offer not found');
@@ -260,6 +263,8 @@ export class OrdersService {
         items: true,
         payment: true,
         store: { select: { id: true, name: true, addressLine1: true } },
+        coupon: { select: { code: true } },
+        offer: { select: { id: true } },
       },
     });
   }
@@ -372,10 +377,11 @@ export class OrdersService {
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
-        include: {
-          store: { select: { id: true, name: true, slug: true } },
-          offer: { select: { id: true, title: true, imageUrl: true } },
-        },
+      include: {
+        store: { select: { id: true, name: true, slug: true } },
+        offer: { select: { id: true, title: true, imageUrl: true } },
+        coupon: { select: { code: true } },
+      },
         orderBy,
         skip: (page - 1) * limit,
         take: limit,

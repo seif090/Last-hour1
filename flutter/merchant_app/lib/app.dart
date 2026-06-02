@@ -6,6 +6,8 @@ import 'features/offers/presentation/pages/merchant_offers_page.dart';
 import 'features/orders/presentation/pages/merchant_incoming_orders_page.dart';
 import 'features/products/presentation/pages/products_page.dart';
 import 'features/analytics/presentation/pages/merchant_analytics_page.dart';
+import 'features/coupons/presentation/pages/coupons_page.dart';
+import 'features/staff/presentation/pages/staff_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injector.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
@@ -91,7 +93,9 @@ class _MerchantShellState extends State<MerchantShell> {
     MerchantOffersPage(),
     ProductsPage(),
     MerchantIncomingOrdersPage(),
+    CouponsPage(),
     MerchantAnalyticsPage(),
+    StaffPage(),
   ];
 
   @override
@@ -106,7 +110,9 @@ class _MerchantShellState extends State<MerchantShell> {
           NavigationDestination(icon: Icon(Icons.local_offer_outlined), selectedIcon: Icon(Icons.local_offer), label: 'Offers'),
           NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Products'),
           NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Orders'),
+          NavigationDestination(icon: Icon(Icons.card_giftcard_outlined), selectedIcon: Icon(Icons.card_giftcard), label: 'Coupons'),
           NavigationDestination(icon: Icon(Icons.analytics_outlined), selectedIcon: Icon(Icons.analytics), label: 'Analytics'),
+          NavigationDestination(icon: Icon(Icons.group_outlined), selectedIcon: Icon(Icons.group), label: 'Staff'),
         ],
       ),
     );

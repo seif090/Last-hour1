@@ -88,6 +88,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             const Divider(),
                             _row('Quantity', '${order.quantity}'),
                             _row('Subtotal', '${order.subtotal.toStringAsFixed(2)} ${order.currency}'),
+                            if (order.discountAmount > 0) ...[
+                              _row('Discount', '-${order.discountAmount.toStringAsFixed(2)} ${order.currency}',
+                                  bold: true),
+                              if (order.couponCode != null)
+                                _row('Coupon', order.couponCode!),
+                            ],
                             _row('Service Fee', '${order.serviceFee.toStringAsFixed(2)} ${order.currency}'),
                             const Divider(),
                             _row('Total', '${order.totalAmount.toStringAsFixed(2)} ${order.currency}',
@@ -139,6 +145,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               side: const BorderSide(color: Colors.red),
                               minimumSize: const Size(double.infinity, 48),
                             ),
+                          ),
+                        ),
+                      ],
+                      if (order.status == 'picked_up' || order.status == 'cancelled') ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => context.go('/offers/${order.offerId}'),
+                            icon: const Icon(Icons.replay),
+                            label: const Text('Reorder'),
                           ),
                         ),
                       ],

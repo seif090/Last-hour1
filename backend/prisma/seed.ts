@@ -54,9 +54,9 @@ async function main() {
   const [store1] = await prisma.$queryRawUnsafe<
     Array<{ id: string }>
   >(
-    `INSERT INTO "Store" (merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url)
-     VALUES ($1, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14)
-     RETURNING id`,
+    `INSERT INTO "stores" (id, merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url, updated_at)
+      VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP)
+      RETURNING id`,
     m1.id,
     'Bread Factory – Downtown',
     'bread-factory-downtown',
@@ -134,9 +134,9 @@ async function main() {
   const [store2] = await prisma.$queryRawUnsafe<
     Array<{ id: string }>
   >(
-    `INSERT INTO "Store" (merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url)
-     VALUES ($1, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14)
-     RETURNING id`,
+    `INSERT INTO "stores" (id, merchant_id, name, slug, description, location, address_line1, city, district, cuisine_type, opens_at, closes_at, timezone, cover_image_url, logo_url, updated_at)
+      VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, ST_SetSRID(ST_MakePoint($5, $6), 4326), $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP)
+      RETURNING id`,
     m2.id,
     'Gourmet Kitchen – Zamalek',
     'gourmet-kitchen-zamalek',
@@ -278,8 +278,21 @@ async function main() {
     },
   });
 
-  // ── Refresh materialized view ────────────────────────────────
-  await prisma.$executeRawUnsafe('REFRESH MATERIALIZED VIEW CONCURRENTLY mv_active_offers');
+  // ── Create/refresh materialized view ─────────────────────────
+  await prisma.$executeRawUnsafe('DROP MATERIALIZED VIEW IF EXISTS mv_active_offers');
+  await prisma.$executeRawUnsafe(`
+    CREATE MATERIALIZED VIEW mv_active_offers AS
+    SELECT o.id, o.title, o.original_price, o.discounted_price, o.stock_remaining,
+           o.end_time, o.image_url, o.tags,
+           s.id AS store_id, s.name AS store_name, s.slug AS store_slug,
+           s.logo_url AS store_logo_url, s.city, s.district,
+           p.id AS product_id, p.name AS product_name,
+           p.image_urls AS product_image_urls, p.category AS product_category
+    FROM offers o
+    JOIN stores s ON s.id = o.store_id
+    JOIN products p ON p.id = o.product_id
+    WHERE o.status = 'active' AND o.end_time > NOW() AND o.stock_remaining > 0
+  `);
 
   console.log('\n✅ Seed complete!');
   console.log(`   Users:      ${await prisma.user.count()}`);

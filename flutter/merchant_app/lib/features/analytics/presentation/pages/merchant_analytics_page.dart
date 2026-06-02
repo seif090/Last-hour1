@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../injector.dart';
 import '../../../services/api_client.dart';
 
@@ -21,6 +23,23 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
     _load();
   }
 
+  Future<void> _downloadCsv() async {
+    try {
+      final csv = await _api.downloadString('/api/v1/merchant/report/csv', queryParams: {'days': '$_days'});
+      if (csv == null) return;
+      final file = File('${Directory.systemTemp.path}/lasthour_report_$_days.csv');
+      await file.writeAsString(csv);
+      await Clipboard.setData(ClipboardData(text: csv));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('CSV saved to ${file.path} and copied to clipboard')));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to download CSV')));
+      }
+    }
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
@@ -38,6 +57,11 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
       appBar: AppBar(
         title: const Text('Analytics'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Download CSV Report',
+            onPressed: _downloadCsv,
+          ),
           PopupMenuButton<int>(
             icon: const Icon(Icons.date_range),
             onSelected: (days) {

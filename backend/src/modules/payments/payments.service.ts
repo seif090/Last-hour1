@@ -66,7 +66,11 @@ export class PaymentsService {
     // Look up the order in our database
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { customer: true, store: true, offer: true },
+      include: {
+        customer: { select: { id: true } },
+        store: { select: { id: true, name: true } },
+        offer: { select: { id: true, storeId: true, stockRemaining: true } },
+      },
     });
 
     if (!order) {

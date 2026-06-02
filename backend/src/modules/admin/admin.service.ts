@@ -223,4 +223,60 @@ export class AdminService {
       uptime: process.uptime(),
     };
   }
+
+  async listCoupons(page = 1, limit = 20, storeId?: string) {
+    const where: Prisma.CouponWhereInput = {};
+    if (storeId) where.storeId = storeId;
+
+    const [coupons, total] = await Promise.all([
+      this.prisma.coupon.findMany({
+        where,
+        include: {
+          store: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.coupon.count({ where }),
+    ]);
+
+    return { coupons, meta: { page, limit, total, hasMore: page * limit < total } };
+  }
+
+  async listReferrals(page = 1, limit = 20) {
+    const [referrals, total] = await Promise.all([
+      this.prisma.referral.findMany({
+        include: {
+          referrer: { select: { id: true, email: true } },
+          referee: { select: { id: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.referral.count(),
+    ]);
+
+    return { referrals, meta: { page, limit, total, hasMore: page * limit < total } };
+  }
+
+  async getReferralStats() {
+    const [totalReferrals, rewardedCount, totalRewardAmount, pendingCount] = await Promise.all([
+      this.prisma.referral.count(),
+      this.prisma.referral.count({ where: { status: 'rewarded' } }),
+      this.prisma.referral.aggregate({
+        _sum: { rewardAmount: true },
+        where: { status: 'rewarded' },
+      }),
+      this.prisma.referral.count({ where: { status: 'pending' } }),
+    ]);
+
+    return {
+      totalReferrals,
+      rewardedCount,
+      totalRewardAmount: totalRewardAmount._sum.rewardAmount ?? 0,
+      pendingCount,
+    };
+  }
 }

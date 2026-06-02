@@ -20,6 +20,9 @@ import { AddressesModule } from './modules/addresses/addresses.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { NotificationPreferencesModule } from './modules/notification-preferences/notification-preferences.module';
+import { PaymentMethodsModule } from './modules/payment-methods/payment-methods.module';
+import { StaffModule } from './modules/staff/staff.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './redis/redis.module';
 import { DatabaseModule } from './database/database.module';
@@ -84,6 +87,9 @@ import * as Joi from 'joi';
     UploadsModule,
     QueueModule,
     UsersModule,
+    NotificationPreferencesModule,
+    PaymentMethodsModule,
+    StaffModule,
   ],
   providers: [
     {

@@ -30,4 +30,9 @@ export class CreateProductDto {
   @IsArray()
   @IsString({ each: true })
   imageUrls?: string[];
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  storeId?: string;
 }

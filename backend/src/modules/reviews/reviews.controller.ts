@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -22,6 +22,9 @@ export class ReviewsController {
   @Public()
   @Get('store/:storeId')
   @ApiOperation({ summary: 'Get store reviews' })
+  @ApiParam({ name: 'storeId', description: 'Store ID' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   async getStoreReviews(
     @Param('storeId') storeId: string,
     @Query('page') page = 1,

@@ -13,8 +13,10 @@ class SearchOffers extends SearchEvent {
   final String query;
   final double lat;
   final double lng;
-  const SearchOffers({required this.query, required this.lat, required this.lng});
+  final bool refresh;
+  const SearchOffers({required this.query, required this.lat, required this.lng, this.refresh = true});
 }
+class LoadMoreSearch extends SearchEvent {}
 class ClearSearch extends SearchEvent {}
 
 abstract class SearchState extends Equatable {
@@ -28,9 +30,35 @@ class SearchLoading extends SearchState {}
 class SearchLoaded extends SearchState {
   final List<Offer> results;
   final String query;
-  const SearchLoaded({this.results = const [], this.query = ''});
+  final bool hasMore;
+  final bool isLoadingMore;
+  final int page;
+  const SearchLoaded({
+    this.results = const [],
+    this.query = '',
+    this.hasMore = false,
+    this.isLoadingMore = false,
+    this.page = 1,
+  });
+
+  SearchLoaded copyWith({
+    List<Offer>? results,
+    String? query,
+    bool? hasMore,
+    bool? isLoadingMore,
+    int? page,
+  }) {
+    return SearchLoaded(
+      results: results ?? this.results,
+      query: query ?? this.query,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      page: page ?? this.page,
+    );
+  }
+
   @override
-  List<Object?> get props => [results, query];
+  List<Object?> get props => [results, query, hasMore, isLoadingMore, page];
 }
 class SearchEmpty extends SearchState {
   final String query;
@@ -47,10 +75,19 @@ class SearchError extends SearchState {
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final ApiClient _api;
+  String? _currentQuery;
+  double? _currentLat;
+  double? _currentLng;
 
   SearchBloc({required ApiClient api}) : _api = api, super(SearchInitial()) {
     on<SearchOffers>(_onSearch);
-    on<ClearSearch>((_, emit) => emit(SearchInitial()));
+    on<LoadMoreSearch>(_onLoadMore);
+    on<ClearSearch>((_, emit) {
+      _currentQuery = null;
+      _currentLat = null;
+      _currentLng = null;
+      emit(SearchInitial());
+    });
   }
 
   Future<void> _onSearch(SearchOffers event, Emitter<SearchState> emit) async {
@@ -58,28 +95,69 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchInitial());
       return;
     }
-    emit(SearchLoading());
+
+    _currentQuery = event.query.trim();
+    _currentLat = event.lat;
+    _currentLng = event.lng;
+
+    if (event.refresh) {
+      emit(SearchLoading());
+    } else if (state is SearchLoaded) {
+      emit((state as SearchLoaded).copyWith(isLoadingMore: true));
+    }
+
+    final page = event.refresh ? 1 : (state is SearchLoaded ? (state as SearchLoaded).page + 1 : 1);
+
     try {
       final response = await _api.get('/api/v1/offers/search', queryParams: {
-        'q': event.query.trim(),
-        'lat': event.lat.toString(),
-        'lng': event.lng.toString(),
+        'q': _currentQuery!,
+        'lat': _currentLat.toString(),
+        'lng': _currentLng.toString(),
         'radius': '20000',
-        'limit': '50',
+        'page': page.toString(),
+        'limit': '20',
       });
       if (response.isSuccess && response.data != null) {
         final list = response.data!['offers'] as List<dynamic>? ?? [];
-        if (list.isEmpty) {
-          emit(SearchEmpty(event.query));
+        if (list.isEmpty && event.refresh) {
+          emit(SearchEmpty(_currentQuery!));
+          return;
+        }
+        final offers = list.map((j) => Offer.fromJson(j as Map<String, dynamic>)).toList();
+        final meta = response.data!['meta'] as Map<String, dynamic>? ?? {};
+        final hasMore = meta['hasMore'] as bool? ?? false;
+
+        if (event.refresh) {
+          emit(SearchLoaded(results: offers, query: _currentQuery!, hasMore: hasMore, page: page));
         } else {
-          final offers = list.map((j) => Offer.fromJson(j as Map<String, dynamic>)).toList();
-          emit(SearchLoaded(results: offers, query: event.query));
+          final current = state as SearchLoaded;
+          emit(SearchLoaded(
+            results: [...current.results, ...offers],
+            query: _currentQuery!,
+            hasMore: hasMore,
+            page: page,
+          ));
         }
       } else {
-        emit(SearchError(response.error ?? 'Search failed'));
+        if (!event.refresh) {
+          emit((state as SearchLoaded).copyWith(isLoadingMore: false));
+        } else {
+          emit(SearchError(response.error ?? 'Search failed'));
+        }
       }
     } catch (e) {
-      emit(SearchError(e.toString()));
+      if (!event.refresh) {
+        emit((state as SearchLoaded).copyWith(isLoadingMore: false));
+      } else {
+        emit(SearchError(e.toString()));
+      }
     }
+  }
+
+  Future<void> _onLoadMore(LoadMoreSearch event, Emitter<SearchState> emit) async {
+    if (state is! SearchLoaded) return;
+    final current = state as SearchLoaded;
+    if (current.isLoadingMore || !current.hasMore) return;
+    add(SearchOffers(query: current.query, lat: _currentLat!, lng: _currentLng!, refresh: false));
   }
 }

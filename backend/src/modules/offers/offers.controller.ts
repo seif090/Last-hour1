@@ -5,7 +5,7 @@ import {
   Req,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { OffersService } from './offers.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -21,6 +21,7 @@ export class OffersController {
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get offer detail with quota info' })
+  @ApiParam({ name: 'id', description: 'Offer ID' })
   async getOfferDetail(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,

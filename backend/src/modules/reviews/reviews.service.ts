@@ -31,23 +31,28 @@ export class ReviewsService {
       },
     });
 
-    await this.updateStoreRating(order.storeId);
+    await this.updateStoreRating(order.storeId, data.rating);
 
     return review;
   }
 
-  private async updateStoreRating(storeId: string) {
-    const stats = await this.prisma.review.aggregate({
-      where: { storeId },
-      _avg: { rating: true },
-      _count: true,
+  private async updateStoreRating(storeId: string, newRating: number) {
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { ratingAvg: true, ratingCount: true },
     });
+
+    if (!store) return;
+
+    const currentAvg = Number(store.ratingAvg);
+    const newCount = store.ratingCount + 1;
+    const newAvg = (currentAvg * store.ratingCount + newRating) / newCount;
 
     await this.prisma.store.update({
       where: { id: storeId },
       data: {
-        ratingAvg: stats._avg.rating ?? 0,
-        ratingCount: stats._count,
+        ratingAvg: Math.round(newAvg * 100) / 100,
+        ratingCount: newCount,
       },
     });
   }

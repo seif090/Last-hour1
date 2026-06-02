@@ -187,7 +187,13 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             child: OutlinedButton.icon(
               icon: const Icon(Icons.map),
               label: const Text('View on Map'),
-              onPressed: () => context.go('/map'),
+              onPressed: () {
+                if (store.lat != 0 && store.lng != 0) {
+                  context.go('/map?lat=${store.lat}&lng=${store.lng}');
+                } else {
+                  context.go('/map');
+                }
+              },
             ),
           ),
           const Divider(height: 24),

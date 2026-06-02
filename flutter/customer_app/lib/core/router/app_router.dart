@@ -14,6 +14,8 @@ import '../../features/favorites/presentation/pages/favorites_page.dart';
 import '../../features/store_detail/presentation/pages/store_detail_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/addresses/presentation/pages/addresses_page.dart';
+import '../../features/notification_preferences/presentation/pages/notification_prefs_page.dart';
+import '../../features/payment_methods/presentation/pages/payment_methods_page.dart';
 
 class _AuthStateNotifier extends ChangeNotifier {
   final StreamSubscription _sub;
@@ -54,7 +56,11 @@ GoRouter appRouter(AuthBloc authBloc) {
             routes: [
               GoRoute(
                 path: '/map',
-                builder: (_, __) => const MapExplorePage(),
+                builder: (_, state) {
+                  final lat = double.tryParse(state.uri.queryParameters['lat'] ?? '');
+                  final lng = double.tryParse(state.uri.queryParameters['lng'] ?? '');
+                  return MapExplorePage(focusLat: lat, focusLng: lng);
+                },
               ),
             ],
           ),
@@ -103,6 +109,14 @@ GoRouter appRouter(AuthBloc authBloc) {
       GoRoute(
         path: '/addresses',
         builder: (_, __) => const AddressesPage(),
+      ),
+      GoRoute(
+        path: '/notification-preferences',
+        builder: (_, __) => const NotificationPrefsPage(),
+      ),
+      GoRoute(
+        path: '/payment-methods',
+        builder: (_, __) => const PaymentMethodsPage(),
       ),
     ],
   );

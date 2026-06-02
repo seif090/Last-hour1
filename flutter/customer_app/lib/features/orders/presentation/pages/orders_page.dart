@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../bloc/order_track_bloc.dart';
 import '../widgets/order_card.dart';
 import '../../../../core/widgets/error_screen.dart';
+import '../../../../core/widgets/infinite_scroll_list.dart';
 import '../../../../injector.dart';
 
 class OrdersPage extends StatefulWidget {
@@ -37,6 +38,7 @@ class _OrdersPageState extends State<OrdersPage> {
 
   void _reload() {
     _bloc.add(LoadOrders(
+      refresh: true,
       status: _selectedStatus,
       startDate: _startDate,
       endDate: _endDate,
@@ -100,10 +102,12 @@ class _OrdersPageState extends State<OrdersPage> {
               }
               return RefreshIndicator(
                 onRefresh: () async => _reload(),
-                child: ListView.builder(
+                child: InfiniteScrollList(
                   itemCount: state.orders.length,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemBuilder: (_, i) => OrderCard(
+                  isLoading: state.isLoadingMore,
+                  hasMore: state.hasMore,
+                  onLoadMore: () => _bloc.add(LoadMoreOrders()),
+                  itemBuilder: (i) => OrderCard(
                     order: state.orders[i],
                     onTap: () => context.go('/orders/${state.orders[i].id}'),
                   ),

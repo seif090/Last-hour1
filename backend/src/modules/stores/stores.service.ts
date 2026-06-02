@@ -75,7 +75,7 @@ export class StoresService {
   }
 
   async getStoreDetail(storeId: string) {
-    return this.prisma.store.findUniqueOrThrow({
+    const store = await this.prisma.store.findUniqueOrThrow({
       where: { id: storeId },
       include: {
         merchant: { select: { id: true, businessName: true } },
@@ -86,6 +86,18 @@ export class StoresService {
         _count: { select: { reviews: true } },
       },
     });
+    // Fetch location separately (Unsupported geography type)
+    const locResult: Array<{ coordinates: string }> = await this.prisma.$queryRawUnsafe(
+      `SELECT ST_AsGeoJSON(location)::jsonb -> 'coordinates' as coordinates FROM stores WHERE id = $1`,
+      storeId,
+    );
+    const coordinates: number[] | null = locResult[0]?.coordinates
+      ? JSON.parse(locResult[0].coordinates as unknown as string)
+      : null;
+    const lng = coordinates?.[0] ?? null;
+    const lat = coordinates?.[1] ?? null;
+    return { ...store, lat, lng, location: undefined };
+
   }
 
   async getStoreMenu(storeId: string) {

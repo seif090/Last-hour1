@@ -1,13 +1,22 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:lasthour_shared/models/offer.dart';
 
 class MapService {
+  static const _categoryColors = <String, String>{
+    'Food': 'red',
+    'Drinks': 'blue',
+    'Electronics': 'purple',
+    'Fashion': 'pink',
+    'Other': 'teal',
+  };
+
   Set<Marker> buildOfferMarkers(List<Offer> offers, {void Function(String)? onTap}) {
     return offers.map((o) {
+      final hue = _categoryToHue(o.category);
       return Marker(
         markerId: MarkerId(o.id),
         position: LatLng(o.lat, o.lng),
+        icon: BitmapDescriptor.defaultMarkerWithHue(hue),
         infoWindow: InfoWindow(
           title: o.storeName,
           snippet: '${o.title} — ${o.discountedPrice.toStringAsFixed(2)} EGP',
@@ -15,6 +24,16 @@ class MapService {
         ),
       );
     }).toSet();
+  }
+
+  double _categoryToHue(String? category) {
+    switch (category?.toLowerCase()) {
+      case 'food': return BitmapDescriptor.hueRed;
+      case 'drinks': return BitmapDescriptor.hueAzure;
+      case 'electronics': return BitmapDescriptor.hueViolet;
+      case 'fashion': return BitmapDescriptor.hueRose;
+      default: return BitmapDescriptor.hueGreen;
+    }
   }
 
   LatLngBounds boundsFromOffers(List<Offer> offers, {LatLng? center}) {

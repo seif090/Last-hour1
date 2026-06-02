@@ -11,7 +11,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { AddressesService } from './addresses.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
@@ -39,6 +39,7 @@ export class AddressesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get address by id' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   async findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
     const address = await this.addressesService.findOne(id, req.user.id);
     return { success: true, data: address };
@@ -46,6 +47,7 @@ export class AddressesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an address' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateAddressDto,
@@ -57,6 +59,7 @@ export class AddressesController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an address' })
+  @ApiParam({ name: 'id', description: 'Address ID' })
   async remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
     await this.addressesService.remove(id, req.user.id);
     return { success: true };
