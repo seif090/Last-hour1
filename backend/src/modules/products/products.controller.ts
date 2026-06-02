@@ -1,10 +1,12 @@
 import { Controller, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Request } from 'express';
 import { ProductsService } from './products.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -16,20 +18,20 @@ export class ProductsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a product' })
-  async create(@Body() dto: CreateProductDto, @Req() req: any) {
-    return this.productsService.create(req.user.storeId, dto);
+  async create(@Body() dto: CreateProductDto, @Req() req: Request) {
+    return this.productsService.create(req.user!.storeId!, dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a product' })
-  async update(@Param('id') id: string, @Body() dto: any, @Req() req: any) {
-    return this.productsService.update(id, req.user.storeId, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateProductDto, @Req() req: Request) {
+    return this.productsService.update(id, req.user!.storeId!, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Deactivate a product' })
-  async delete(@Param('id') id: string, @Req() req: any) {
-    await this.productsService.delete(id, req.user.storeId);
+  async delete(@Param('id') id: string, @Req() req: Request) {
+    await this.productsService.delete(id, req.user!.storeId!);
     return { success: true };
   }
 }

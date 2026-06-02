@@ -23,7 +23,7 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Paymob transaction callback webhook' })
   async paymobWebhook(
     @Query('hmac') hmac: string,
-    @Body() body: any,
+    @Body() body: Record<string, unknown>,
   ) {
     this.logger.log('Received Paymob webhook event');
 
@@ -34,13 +34,14 @@ export class PaymentsController {
       throw new BadRequestException('Transaction payload (body.obj) is required');
     }
 
-    const verified = this.paymentsService.verifyPaymobWebhook(hmac, body.obj);
+    const obj = body.obj as Record<string, unknown>;
+    const verified = this.paymentsService.verifyPaymobWebhook(hmac, obj);
     if (!verified) {
       this.logger.warn('Paymob webhook verification failed: Invalid HMAC');
       throw new BadRequestException('Invalid HMAC signature');
     }
 
-    await this.paymentsService.handlePaymobWebhook(body.obj);
+    await this.paymentsService.handlePaymobWebhook(obj);
     return { success: true };
   }
 }
