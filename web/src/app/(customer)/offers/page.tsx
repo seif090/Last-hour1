@@ -1,12 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { offersApi } from '@/lib/api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { formatPrice, timeAgo } from '@/lib/utils';
-import { Clock, MapPin, Star } from 'lucide-react';
+import OfferCard from '@/components/offer-card';
+import { SearchX } from 'lucide-react';
 import type { Offer } from '@/lib/types';
 
 export default function OffersPage() {
@@ -23,57 +20,42 @@ export default function OffersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loading) return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="rounded-lg border border-outline bg-surface-container overflow-hidden animate-pulse">
+          <div className="h-32 bg-surface-container-high" />
+          <div className="p-3 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-surface-dim" />
+            <div className="h-3 w-1/2 rounded bg-surface-dim" />
+            <div className="h-1.5 w-full rounded bg-surface-dim" />
+            <div className="h-3 w-1/3 rounded bg-surface-dim" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Nearby Offers</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-display font-bold">Nearby Offers</h1>
+        <span className="text-sm text-on-surface-variant">{offers.length} available</span>
+      </div>
+
       {offers.length === 0 ? (
-        <p className="text-center text-on-surface-variant py-12">No offers available right now.</p>
+        <div className="flex flex-col items-center gap-3 py-16 text-on-surface-variant">
+          <SearchX className="h-12 w-12" />
+          <p className="text-lg font-display font-semibold">No offers right now</p>
+          <p className="text-sm">Check back later for fresh deals</p>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {offers.map(offer => (
-            <Link key={offer.id} href={`/offers/${offer.id}`}>
-              <Card className="hover:glow-crimson-sm transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-primary/15 flex items-center justify-center">
-                      {offer.imageUrl ? (
-                        <img src={offer.imageUrl} alt={offer.title} className="h-full w-full rounded-lg object-cover" />
-                      ) : (
-                        <Tag className="h-8 w-8 text-primary" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{offer.title}</h3>
-                      <p className="text-sm text-on-surface-variant truncate">{offer.store?.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-lg font-bold text-primary">{formatPrice(offer.discountedPrice)}</span>
-                        <span className="text-sm text-on-surface-variant line-through">{formatPrice(offer.originalPrice)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-on-surface-variant">
-                        <span>{offer.stockRemaining} left</span>
-                        <Badge variant={offer.stockRemaining > 10 ? 'success' : 'danger'}>
-                          {offer.stockRemaining > 10 ? 'Available' : 'Few left'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <OfferCard key={offer.id} offer={offer} />
           ))}
         </div>
       )}
     </div>
-  );
-}
-
-function Tag(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2H2v10l9.29 9.29c.39.39 1.02.39 1.41 0l6.58-6.58c.39-.39.39-1.02 0-1.41L12 2z" />
-      <circle cx="7" cy="7" r="1.5" fill="currentColor" />
-    </svg>
   );
 }

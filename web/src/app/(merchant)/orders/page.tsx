@@ -24,22 +24,24 @@ export default function MerchantOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
 
-  const loadOrders = (status?: string) => {
-    setLoading(true);
-    merchantApi.listOrders({ status, limit: 50 })
+  useEffect(() => {
+    merchantApi.listOrders({ limit: 50 })
       .then((data: unknown) => {
         const res = data as { orders: Order[] };
         setOrders(res.orders || []);
       })
       .catch(() => toast.error('Failed to load orders'))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { loadOrders(); }, []);
+  }, []);
 
   const handleFilter = (status: string) => {
     setStatusFilter(status);
-    loadOrders(status || undefined);
+    merchantApi.listOrders({ status: status || undefined, limit: 50 })
+      .then((data: unknown) => {
+        const res = data as { orders: Order[] };
+        setOrders(res.orders || []);
+      })
+      .catch(() => toast.error('Failed to load orders'));
   };
 
   if (loading) return <div className="flex justify-center py-12"><Clock className="h-8 w-8 animate-spin text-primary" /></div>;

@@ -37,8 +37,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setOnAuthError(() => { setUser(null); clearTokens(); });
-    refresh();
-  }, [refresh]);
+    (async () => {
+      loadTokens();
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+      setTokens(token, localStorage.getItem('refreshToken') || '');
+      try {
+        const data = await api<{ user: User }>('/auth/profile');
+        setUser(data.user);
+      } catch {
+        clearTokens();
+        setUser(null);
+      }
+    })().finally(() => setLoading(false));
+  }, []);
 
   const login = async (email: string, password: string) => {
     const res = await api<{ accessToken: string; refreshToken: string; user: User }>('/auth/login', {
