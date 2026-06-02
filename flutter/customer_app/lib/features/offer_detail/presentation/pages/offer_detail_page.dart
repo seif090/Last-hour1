@@ -20,6 +20,7 @@ class OfferDetailPage extends StatefulWidget {
 
 class _OfferDetailPageState extends State<OfferDetailPage> {
   late final OfferDetailBloc _bloc;
+  final _couponCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -185,9 +186,29 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ],
             ),
             const SizedBox(height: 24),
+            TextField(
+              controller: _couponCtrl,
+              decoration: InputDecoration(
+                labelText: 'Coupon code (optional)',
+                border: const OutlineInputBorder(),
+                suffixIcon: _couponCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _couponCtrl.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                prefixIcon: const Icon(Icons.discount_outlined),
+              ),
+              textCapitalization: TextCapitalization.characters,
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
             AppButton(
               label: 'Order Now — ${(offer.discountedPrice * state.quantity).toStringAsFixed(0)} EGP',
-              onPressed: () => _bloc.add(PlaceOrder(state.quantity)),
+              onPressed: () => _bloc.add(PlaceOrder(state.quantity, couponCode: _couponCtrl.text)),
             ),
           ] else
             Container(

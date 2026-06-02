@@ -6,8 +6,11 @@ import 'offer_timer.dart';
 class OfferCard extends StatelessWidget {
   final Offer offer;
   final VoidCallback? onTap;
+  final VoidCallback? onStoreTap;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteToggle;
 
-  const OfferCard({super.key, required this.offer, this.onTap});
+  const OfferCard({super.key, required this.offer, this.onTap, this.onStoreTap, this.isFavorited = false, this.onFavoriteToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +31,14 @@ class OfferCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          offer.storeName,
-                          style: const TextStyle(fontSize: 13, color: Colors.grey),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: GestureDetector(
+                          onTap: onStoreTap,
+                          child: Text(
+                            offer.storeName,
+                            style: const TextStyle(fontSize: 13, color: Colors.grey, decoration: TextDecoration.underline),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -119,14 +125,7 @@ class OfferCard extends StatelessWidget {
 
   Widget _buildImageHeader(BuildContext context) {
     if (offer.imageUrl == null) {
-      return Container(
-        height: 120,
-        width: double.infinity,
-        color: Colors.grey.shade200,
-        child: const Center(
-          child: Icon(Icons.restaurant, size: 40, color: Colors.grey),
-        ),
-      );
+      return _buildFallbackHeader();
     }
     return Stack(
       children: [
@@ -135,16 +134,12 @@ class OfferCard extends StatelessWidget {
           height: 120,
           width: double.infinity,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            height: 120,
-            color: Colors.grey.shade200,
-            child: const Center(child: Icon(Icons.restaurant, size: 40, color: Colors.grey)),
-          ),
+          errorBuilder: (_, __, ___) => _buildFallbackHeader(),
         ),
         if (offer.isLowStock)
           Positioned(
             top: 8,
-            right: 8,
+            left: 8,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -157,7 +152,43 @@ class OfferCard extends StatelessWidget {
               ),
             ),
           ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: IconButton(
+            icon: Icon(
+              isFavorited ? Icons.favorite : Icons.favorite_border,
+              color: isFavorited ? Colors.red : Colors.white,
+              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+            ),
+            onPressed: onFavoriteToggle,
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildFallbackHeader() {
+    return Container(
+      height: 120,
+      width: double.infinity,
+      color: Colors.grey.shade200,
+      child: Stack(
+        children: [
+          const Center(child: Icon(Icons.restaurant, size: 40, color: Colors.grey)),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: Icon(
+                isFavorited ? Icons.favorite : Icons.favorite_border,
+                color: isFavorited ? Colors.red : Colors.grey,
+              ),
+              onPressed: onFavoriteToggle,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

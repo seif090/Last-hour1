@@ -15,6 +15,10 @@ import { MerchantsModule } from './modules/merchants/merchants.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { UsersModule } from './modules/users/users.module';
 import { DeviceTokensModule } from './modules/device-tokens/device-tokens.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
+import { AddressesModule } from './modules/addresses/addresses.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { ReferralsModule } from './modules/referrals/referrals.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './redis/redis.module';
@@ -73,6 +77,10 @@ import * as Joi from 'joi';
     OrdersModule,
     PaymentsModule,
     DeviceTokensModule,
+    FavoritesModule,
+    AddressesModule,
+    CouponsModule,
+    ReferralsModule,
     UploadsModule,
     QueueModule,
     UsersModule,

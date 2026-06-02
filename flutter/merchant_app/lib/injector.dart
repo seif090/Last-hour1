@@ -4,6 +4,7 @@ import 'services/api_client.dart';
 import 'services/websocket_service.dart';
 import 'features/offers/presentation/bloc/merchant_offers_bloc.dart';
 import 'features/orders/presentation/bloc/incoming_orders_bloc.dart';
+import 'features/products/presentation/bloc/products_bloc.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
 import 'package:lasthour_shared/constants/api_constants.dart';
@@ -45,5 +46,9 @@ Future<void> initializeMerchantDependencies() async {
       api: sl<ApiClient>(),
       ws: sl<MerchantWebSocketService>(),
     ),
+  );
+
+  sl.registerFactory<ProductsBloc>(
+    () => ProductsBloc(api: sl<ApiClient>()),
   );
 }

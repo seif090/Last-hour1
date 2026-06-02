@@ -5,7 +5,7 @@ import { PrismaService } from '../../database/prisma.service';
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(customerId: string, data: { orderId: string; rating: number; comment?: string }) {
+  async create(customerId: string, data: { orderId: string; rating: number; comment?: string; imageUrl?: string }) {
     const order = await this.prisma.order.findUnique({
       where: { id: data.orderId },
       select: { customerId: true, storeId: true, status: true },
@@ -27,6 +27,7 @@ export class ReviewsService {
         storeId: order.storeId,
         rating: data.rating,
         comment: data.comment,
+        imageUrl: data.imageUrl,
       },
     });
 

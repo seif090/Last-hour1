@@ -16,6 +16,15 @@ class LoginRequested extends AuthEvent {
   final String password;
   const LoginRequested(this.email, this.password);
 }
+class RegisterRequested extends AuthEvent {
+  final String email;
+  final String password;
+  final String businessName;
+  final String businessType;
+  final String? description;
+  final String? taxId;
+  const RegisterRequested({required this.email, required this.password, required this.businessName, required this.businessType, this.description, this.taxId});
+}
 class LogoutRequested extends AuthEvent {}
 
 abstract class AuthState extends Equatable {
@@ -51,6 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(AuthInitial()) {
     on<AppStarted>(_onAppStarted);
     on<LoginRequested>(_onLogin);
+    on<RegisterRequested>(_onRegister);
     on<LogoutRequested>(_onLogout);
 
     add(AppStarted());
@@ -102,5 +112,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _storage.deleteAll();
     _api.setToken(null);
     emit(Unauthenticated());
+  }
+
+  Future<void> _onRegister(RegisterRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final response = await _api.post('/api/v1/auth/register', body: {
+        'email': event.email,
+        'password': event.password,
+        'role': 'merchant',
+      });
+      if (response.isSuccess && response.data != null) {
+        final d = response.data!;
+        final token = d['accessToken'] ?? d['access_token'];
+        _api.setToken(token);
+
+        final merchantResp = await _api.post('/api/v1/merchant/register', body: {
+          'businessName': event.businessName,
+          'businessType': event.businessType,
+          'description': event.description,
+          'taxId': event.taxId,
+        });
+        if (merchantResp.isSuccess) {
+          await _storage.write(key: 'merchant_token', value: token);
+          await _storage.write(key: 'merchant_id', value: (d['user'] as Map<String, dynamic>)['id']);
+          emit(Authenticated(token: token, merchantId: (d['user'] as Map<String, dynamic>)['id']));
+        } else {
+          emit(AuthError(merchantResp.error ?? 'Merchant registration failed'));
+        }
+      } else {
+        emit(AuthError(response.error ?? 'Registration failed'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 }

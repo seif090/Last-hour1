@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -15,6 +15,13 @@ import { UpdateProductDto } from './dto/update-product.dto';
 @Controller('merchant/products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List products for the merchant store' })
+  async findAll(@Req() req: Request) {
+    const products = await this.productsService.findByStore(req.user!.storeId!);
+    return { products };
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a product' })

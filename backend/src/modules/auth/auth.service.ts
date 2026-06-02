@@ -13,15 +13,60 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  async register(email: string, password: string, role: string = 'customer') {
+  async register(email: string, password: string, role: string = 'customer', referralCode?: string) {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new ConflictException('Email already registered');
 
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Generate unique referral code
+    const genCode = () => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'LH-';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return code;
+    };
+
+    let referralCodeFinal: string | undefined;
+    let referredById: string | undefined;
+
+    if (referralCode) {
+      const referrer = await this.prisma.user.findUnique({ where: { referralCode } });
+      if (referrer) {
+        referredById = referrer.id;
+      }
+    }
+
+    // Try up to 5 times to generate a unique referral code
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = genCode();
+      const existingCode = await this.prisma.user.findUnique({ where: { referralCode: candidate } });
+      if (!existingCode) {
+        referralCodeFinal = candidate;
+        break;
+      }
+    }
+
     const user = await this.prisma.user.create({
-      data: { email, passwordHash, role: role as UserRole },
+      data: {
+        email,
+        passwordHash,
+        role: role as UserRole,
+        referralCode: referralCodeFinal,
+        referredById,
+      },
     });
+
+    // If referred, create a pending referral record
+    if (referredById) {
+      await this.prisma.referral.create({
+        data: {
+          referrerId: referredById,
+          refereeId: user.id,
+          status: 'pending',
+        },
+      });
+    }
 
     return this.generateTokens(user.id, user.email, user.role);
   }

@@ -27,6 +27,11 @@ class DeleteOffer extends MerchantOffersEvent {
   final String offerId;
   const DeleteOffer(this.offerId);
 }
+class UpdateOffer extends MerchantOffersEvent {
+  final String offerId;
+  final Map<String, dynamic> data;
+  const UpdateOffer(this.offerId, this.data);
+}
 class LoadProducts extends MerchantOffersEvent {}
 
 abstract class MerchantOffersState extends Equatable {
@@ -66,6 +71,7 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
     on<UpdateStock>(_onUpdateStock);
     on<EndOffer>(_onEnd);
     on<DeleteOffer>(_onDelete);
+    on<UpdateOffer>(_onUpdate);
     on<LoadProducts>(_onLoadProducts);
   }
 
@@ -141,6 +147,20 @@ class MerchantOffersBloc extends Bloc<MerchantOffersEvent, MerchantOffersState> 
         add(const LoadMerchantOffers());
       } else {
         emit(MerchantOffersError(response.error ?? 'Failed to delete offer'));
+      }
+    } catch (e) {
+      emit(MerchantOffersError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdate(UpdateOffer event, Emitter<MerchantOffersState> emit) async {
+    try {
+      final response = await _api.patch('/api/v1/merchant/offers/${event.offerId}', body: event.data);
+      if (response.isSuccess) {
+        emit(const OfferActionSuccess('Offer updated'));
+        add(const LoadMerchantOffers());
+      } else {
+        emit(MerchantOffersError(response.error ?? 'Failed to update offer'));
       }
     } catch (e) {
       emit(MerchantOffersError(e.toString()));

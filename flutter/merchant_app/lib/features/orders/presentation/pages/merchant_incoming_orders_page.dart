@@ -95,7 +95,46 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                 const SizedBox(height: 4),
                 Text('${order.quantity}x — ${order.totalAmount.toStringAsFixed(0)} EGP',
                     style: TextStyle(color: Colors.grey.shade600)),
-                if (showActions) ...[
+                if (showActions) ...
+  }
+
+  void _showQrCode(BuildContext context, dynamic order) {
+    final orderNumber = order.orderNumber;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Order QR Code'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Order #$orderNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=lasthour://orders/$orderNumber',
+                width: 200,
+                height: 200,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 200, height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(orderNumber, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+        ],
+      ),
+    );
+  }[
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -121,6 +160,14 @@ class _MerchantIncomingOrdersPageState extends State<MerchantIncomingOrdersPage>
                   ElevatedButton(
                     onPressed: () => _bloc.add(MarkReady(order.id)),
                     child: const Text('Mark Ready'),
+                  ),
+                ],
+                if (order.status == 'ready') ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => _showQrCode(context, order),
+                    icon: const Icon(Icons.qr_code, size: 18),
+                    label: const Text('Show QR'),
                   ),
                 ],
               ],

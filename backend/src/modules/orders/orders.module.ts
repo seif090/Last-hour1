@@ -5,12 +5,16 @@ import { OrdersService } from './orders.service';
 import { OffersModule } from '../offers/offers.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { CouponsModule } from '../coupons/coupons.module';
+import { ReferralsModule } from '../referrals/referrals.module';
 
 @Module({
   imports: [
     OffersModule,
     PaymentsModule,
     NotificationsModule,
+    CouponsModule,
+    ReferralsModule,
     BullModule.registerQueue({ name: 'order-timeout' }),
   ],
   controllers: [OrdersController],

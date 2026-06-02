@@ -15,4 +15,9 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(['customer', 'merchant'])
   role?: string;
+
+  @ApiProperty({ required: false, description: 'Referral code from another user' })
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
 }

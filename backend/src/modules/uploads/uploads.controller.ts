@@ -6,8 +6,8 @@ import { S3Service } from './uploads.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 class PresignedUrlDto {
-  @IsIn(['offers', 'stores', 'avatars'])
-  folder: 'offers' | 'stores' | 'avatars';
+  @IsIn(['offers', 'stores', 'avatars', 'reviews'])
+  folder: 'offers' | 'stores' | 'avatars' | 'reviews';
 
   @IsIn(['jpg', 'jpeg', 'png', 'webp'])
   extension: 'jpg' | 'jpeg' | 'png' | 'webp';

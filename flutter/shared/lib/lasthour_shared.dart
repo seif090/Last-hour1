@@ -7,6 +7,7 @@ export 'models/offer.dart';
 export 'models/order.dart';
 export 'models/store.dart';
 export 'models/user.dart';
+export 'models/address.dart';
 export 'constants/api_constants.dart';
 export 'src/exceptions/network_exception.dart';
 export 'src/services/connectivity_service.dart';

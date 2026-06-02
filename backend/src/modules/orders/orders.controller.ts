@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   ParseUUIDPipe,
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -36,14 +37,43 @@ export class OrdersController {
     @Query('status') status?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('sort') sort?: string,
   ) {
-    return this.ordersService.getUserOrders(req.user.id, status, +page, +limit);
+    return this.ordersService.getUserOrders(req.user.id, status, +page, +limit, {
+      startDate,
+      endDate,
+      minPrice: minPrice ? parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+      sort,
+    });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get order detail' })
   async getOrder(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
     const order = await this.ordersService.getOrder(id, req.user.id);
+    return { success: true, data: order };
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Confirm pickup (customer)' })
+  async confirmPickup(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
+    const order = await this.ordersService.confirmPickup(id, req.user.id);
+    return { success: true, data: order };
+  }
+
+  @Patch(':id/cancel')
+  @ApiOperation({ summary: 'Cancel an order (customer)' })
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('reason') reason: string | undefined,
+    @Req() req: any,
+  ) {
+    const order = await this.ordersService.cancelOrder(id, req.user.id, reason);
     return { success: true, data: order };
   }
 }

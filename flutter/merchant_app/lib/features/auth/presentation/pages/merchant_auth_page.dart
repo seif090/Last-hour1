@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
+import 'merchant_registration_page.dart';
 
 class MerchantAuthPage extends StatefulWidget {
   const MerchantAuthPage({super.key});
@@ -75,6 +76,13 @@ class _MerchantAuthPageState extends State<MerchantAuthPage> {
                           : const Text('Sign In'),
                     );
                   },
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MerchantRegistrationPage()));
+                  },
+                  child: const Text("Don't have an account? Register"),
                 ),
               ],
             ),

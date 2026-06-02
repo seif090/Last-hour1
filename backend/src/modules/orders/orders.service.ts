@@ -13,6 +13,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { OffersGateway } from '../offers/offers.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { CouponsService } from '../coupons/coupons.service';
+import { ReferralsService } from '../referrals/referrals.service';
 
 @Injectable()
 export class OrdersService {
@@ -26,11 +28,13 @@ export class OrdersService {
     private readonly paymentsService: PaymentsService,
     private readonly offersGateway: OffersGateway,
     private readonly notificationsService: NotificationsService,
+    private readonly couponsService: CouponsService,
+    private readonly referralsService: ReferralsService,
     @InjectQueue('order-timeout') private readonly orderTimeoutQueue: Queue,
   ) {}
 
   async placeOrder(dto: CreateOrderDto, customerId: string) {
-    const { offerId, quantity, notes } = dto;
+    const { offerId, quantity, notes, couponCode } = dto;
 
     // ── Step 1: Validate offer exists and is active ──────────
     const offer = await this.prisma.offer.findUnique({
@@ -60,7 +64,21 @@ export class OrdersService {
       });
     }
 
-    // ── Step 2: Redis atomic stock decrement (fast path) ─────
+    // ── Step 2: Validate coupon if provided ───────────────────
+    let couponInfo: { couponId: string; discount: number } | null = null;
+    if (couponCode) {
+      const subtotal = Number(offer.discountedPrice) * quantity;
+      const orderTotal = this.calculateTotal(subtotal);
+      try {
+        const result = await this.couponsService.validateAndApply(offer.storeId, { code: couponCode, orderTotal });
+        couponInfo = { couponId: result.couponId, discount: result.discount };
+      } catch (e) {
+        // Coupon invalid — proceed without discount
+        this.logger.warn(`Coupon ${couponCode} invalid for order: ${(e as Error).message}`);
+      }
+    }
+
+    // ── Step 3: Redis atomic stock decrement (fast path) ─────
     const { code: redisCode, remaining: redisRemaining } =
       await this.redis.decrementStock(offerId, quantity, Date.now());
 
@@ -99,7 +117,8 @@ export class OrdersService {
         const orderNumber = await this.generateOrderNumber(tx);
         const subtotal = Number(offer.discountedPrice) * quantity;
         const serviceFee = this.calculateServiceFee(subtotal);
-        const totalAmount = this.calculateTotal(subtotal);
+        const discountAmount = couponInfo?.discount ?? 0;
+        const totalAmount = this.calculateTotal(subtotal) - discountAmount;
 
         // Create order in pending state (will confirm if payment is synchronous/succeeds)
         const newOrder = await tx.order.create({
@@ -113,6 +132,8 @@ export class OrdersService {
             subtotal,
             serviceFee,
             totalAmount,
+            couponId: couponInfo?.couponId ?? null,
+            discountAmount,
             status: 'pending',
             notes: notes || null,
             items: {
@@ -164,6 +185,11 @@ export class OrdersService {
       const finalRedis = await this.redis.getStock(offerId);
       const remainingStock = finalRedis !== null ? finalRedis : redisRemaining;
 
+      // Increment coupon usage if applied
+      if (couponInfo) {
+        await this.couponsService.useCoupon(couponInfo.couponId);
+      }
+
       // Broadcast updated stock to all WebSockets
       this.offersGateway.broadcastStockUpdate(offerId, offer.storeId, remainingStock);
 
@@ -175,6 +201,11 @@ export class OrdersService {
 
         // Send push notification
         await this.notificationsService.onOrderConfirmed(order.id, customerId);
+
+        // Reward referrer if this is the referred user's first confirmed order
+        if (await this.referralsService.rewardReferral(customerId)) {
+          this.logger.log(`Referral reward credited for customer ${customerId}`);
+        }
       } else {
         this.logger.log(`Order ${order.orderNumber} created pending asynchronous payment redirection`);
 
@@ -233,9 +264,110 @@ export class OrdersService {
     });
   }
 
-  async getUserOrders(userId: string, status?: string, page = 1, limit = 20) {
+  async confirmPickup(orderId: string, userId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!order || order.customerId !== userId) {
+      throw new BadRequestException('Order not found');
+    }
+    if (order.status !== 'ready') {
+      throw new BadRequestException('Order must be ready before confirming pickup');
+    }
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'picked_up', pickedUpAt: new Date() },
+    });
+  }
+
+  async cancelOrder(orderId: string, userId: string, reason?: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { offer: true },
+    });
+    if (!order || order.customerId !== userId) {
+      throw new BadRequestException('Order not found');
+    }
+    if (order.status !== 'pending' && order.status !== 'confirmed') {
+      throw new BadRequestException('Only pending or confirmed orders can be cancelled');
+    }
+
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      await tx.offer.update({
+        where: { id: order.offerId },
+        data: { stockRemaining: { increment: order.quantity } },
+      });
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          cancelReason: reason || 'Cancelled by customer',
+        },
+      });
+    });
+
+    try {
+      const currentRedis = await this.redis.getStock(order.offerId);
+      if (currentRedis !== null) {
+        await this.redis.initStock(order.offerId, currentRedis + order.quantity);
+      } else {
+        const freshOffer = await this.prisma.offer.findUnique({
+          where: { id: order.offerId },
+        });
+        if (freshOffer) {
+          await this.redis.initStock(order.offerId, Number(freshOffer.stockRemaining));
+        }
+      }
+
+      const freshRedis = await this.redis.getStock(order.offerId);
+      this.offersGateway.broadcastStockUpdate(
+        order.offerId,
+        order.storeId,
+        freshRedis !== null ? freshRedis : order.offer.stockRemaining + order.quantity,
+      );
+    } catch (err) {
+      this.logger.error(`Failed to restore Redis stock for cancellation of order ${orderId}`, err);
+    }
+
+    this.offersGateway.broadcastOrderStatus(orderId, userId, 'cancelled');
+
+    return updatedOrder;
+  }
+
+  async getUserOrders(
+    userId: string,
+    status?: string,
+    page = 1,
+    limit = 20,
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      sort?: string;
+    },
+  ) {
     const where: Prisma.OrderFindManyArgs['where'] = { customerId: userId };
     if (status) where.status = status as OrderStatus;
+
+    if (filters) {
+      if (filters.startDate || filters.endDate) {
+        where.createdAt = {};
+        if (filters.startDate) where.createdAt.gte = new Date(filters.startDate);
+        if (filters.endDate) where.createdAt.lte = new Date(filters.endDate);
+      }
+      if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+        where.totalAmount = {};
+        if (filters.minPrice !== undefined) where.totalAmount.gte = filters.minPrice;
+        if (filters.maxPrice !== undefined) where.totalAmount.lte = filters.maxPrice;
+      }
+    }
+
+    let orderBy: Prisma.OrderFindManyArgs['orderBy'] = { createdAt: 'desc' };
+    if (filters?.sort === 'amount_asc') orderBy = { totalAmount: 'asc' };
+    else if (filters?.sort === 'amount_desc') orderBy = { totalAmount: 'desc' };
+    else if (filters?.sort === 'oldest') orderBy = { createdAt: 'asc' };
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -244,7 +376,7 @@ export class OrdersService {
           store: { select: { id: true, name: true, slug: true } },
           offer: { select: { id: true, title: true, imageUrl: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),

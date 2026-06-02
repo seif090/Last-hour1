@@ -10,6 +10,10 @@ import '../../features/offer_detail/presentation/pages/offer_detail_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
 import '../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../features/orders/presentation/pages/order_track_page.dart';
+import '../../features/favorites/presentation/pages/favorites_page.dart';
+import '../../features/store_detail/presentation/pages/store_detail_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/addresses/presentation/pages/addresses_page.dart';
 
 class _AuthStateNotifier extends ChangeNotifier {
   final StreamSubscription _sub;
@@ -74,11 +78,31 @@ GoRouter appRouter(AuthBloc authBloc) {
               ),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/favorites',
+                builder: (_, __) => const FavoritesPage(),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
         path: '/offers/:id',
         builder: (_, state) => OfferDetailPage(offerId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/stores/:id',
+        builder: (_, state) => StoreDetailPage(storeId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (_, __) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/addresses',
+        builder: (_, __) => const AddressesPage(),
       ),
     ],
   );

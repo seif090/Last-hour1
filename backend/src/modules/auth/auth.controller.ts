@@ -14,7 +14,7 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto.email, dto.password, dto.role);
+    return this.authService.register(dto.email, dto.password, dto.role, dto.referralCode);
   }
 
   @Public()

@@ -95,9 +95,7 @@ class _OrderTrackPageState extends State<OrderTrackPage> {
                     const SizedBox(height: 32),
                     if (order.status == 'ready')
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // Mark as picked up
-                        },
+                        onPressed: () => _bloc.add(ConfirmPickup(order.id)),
                         icon: const Icon(Icons.check_circle),
                         label: const Text('Mark as Picked Up'),
                         style: ElevatedButton.styleFrom(

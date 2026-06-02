@@ -30,6 +30,27 @@ export class StoresController {
   }
 
   @Public()
+  @Get('offers/search')
+  @ApiOperation({ summary: 'Search offers by text' })
+  async search(
+    @Query('q') q: string,
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius = '20000',
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.storesService.searchOffers(
+      q,
+      parseFloat(lat),
+      parseFloat(lng),
+      parseInt(radius, 10),
+      +page,
+      +limit,
+    );
+  }
+
+  @Public()
   @Get('stores/:id')
   @ApiOperation({ summary: 'Get store detail with menu' })
   async getStore(@Param('id', ParseUUIDPipe) id: string) {

@@ -7,6 +7,8 @@ import { RedisService } from '../../src/redis/redis.service';
 import { PaymentsService } from '../../src/modules/payments/payments.service';
 import { OffersGateway } from '../../src/modules/offers/offers.gateway';
 import { NotificationsService } from '../../src/modules/notifications/notifications.service';
+import { CouponsService } from '../../src/modules/coupons/coupons.service';
+import { ReferralsService } from '../../src/modules/referrals/referrals.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -15,6 +17,8 @@ describe('OrdersService', () => {
   let paymentsService: any;
   let offersGateway: any;
   let notificationsService: any;
+  let couponsService: any;
+  let referralsService: any;
   let orderTimeoutQueue: any;
 
   const mockOffer = {
@@ -106,8 +110,17 @@ describe('OrdersService', () => {
       onOrderConfirmed: jest.fn(),
     };
 
+    couponsService = {
+      validateAndApply: jest.fn(),
+      useCoupon: jest.fn(),
+    };
+
     orderTimeoutQueue = {
       add: jest.fn(),
+    };
+
+    referralsService = {
+      rewardReferral: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -118,6 +131,8 @@ describe('OrdersService', () => {
         { provide: PaymentsService, useValue: paymentsService },
         { provide: OffersGateway, useValue: offersGateway },
         { provide: NotificationsService, useValue: notificationsService },
+        { provide: CouponsService, useValue: couponsService },
+        { provide: ReferralsService, useValue: referralsService },
         { provide: getQueueToken('order-timeout'), useValue: orderTimeoutQueue },
       ],
     }).compile();

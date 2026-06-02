@@ -10,6 +10,7 @@ class Order extends Equatable {
   final double totalAmount;
   final String currency;
   final String? estimatedReadyAt;
+  final String storeId;
   final String storeName;
   final String? storeAddress;
   final double? storeLat;
@@ -29,6 +30,7 @@ class Order extends Equatable {
     required this.totalAmount,
     required this.currency,
     this.estimatedReadyAt,
+    required this.storeId,
     required this.storeName,
     this.storeAddress,
     this.storeLat,
@@ -53,6 +55,7 @@ class Order extends Equatable {
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       currency: json['currency'] as String? ?? 'EGP',
       estimatedReadyAt: json['estimated_ready_at'] as String?,
+      storeId: store?['id'] as String? ?? json['store_id'] as String? ?? '',
       storeName: store?['name'] as String? ?? json['store_name'] as String? ?? '',
       storeAddress: store?['address_line1'] as String? ?? json['store_address'] as String?,
       storeLat: (store?['lat'] as num?)?.toDouble() ?? (json['store_lat'] as num?)?.toDouble(),

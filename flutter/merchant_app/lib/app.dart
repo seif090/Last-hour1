@@ -4,6 +4,8 @@ import 'features/auth/presentation/pages/merchant_auth_page.dart';
 import 'features/dashboard/presentation/pages/merchant_dashboard_page.dart';
 import 'features/offers/presentation/pages/merchant_offers_page.dart';
 import 'features/orders/presentation/pages/merchant_incoming_orders_page.dart';
+import 'features/products/presentation/pages/products_page.dart';
+import 'features/analytics/presentation/pages/merchant_analytics_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injector.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
@@ -40,6 +42,12 @@ class LastHourMerchantApp extends StatelessWidget {
             ),
           ),
         ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          colorSchemeSeed: const Color(0xFFE53935),
+        ),
+        themeMode: ThemeMode.system,
         builder: (context, child) {
           return StreamBuilder<bool>(
             stream: sl<ConnectivityService>().connectivityStream,
@@ -81,7 +89,9 @@ class _MerchantShellState extends State<MerchantShell> {
   final _pages = const [
     MerchantDashboardPage(),
     MerchantOffersPage(),
+    ProductsPage(),
     MerchantIncomingOrdersPage(),
+    MerchantAnalyticsPage(),
   ];
 
   @override
@@ -94,7 +104,9 @@ class _MerchantShellState extends State<MerchantShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
           NavigationDestination(icon: Icon(Icons.local_offer_outlined), selectedIcon: Icon(Icons.local_offer), label: 'Offers'),
+          NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Products'),
           NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Orders'),
+          NavigationDestination(icon: Icon(Icons.analytics_outlined), selectedIcon: Icon(Icons.analytics), label: 'Analytics'),
         ],
       ),
     );

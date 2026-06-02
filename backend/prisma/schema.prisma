@@ -10,7 +10,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [postgis, uuid_ossp, pgcrypto] /// Note: uuid_ossp maps to PG extension 'uuid-ossp'
+  extensions = [postgis, pgcrypto] /// pgcrypto provides gen_random_uuid()
 }
 
 // ─── Enums ──────────────────────────────────────────────────────
@@ -60,6 +60,17 @@ enum BusinessType {
   other
 }
 
+enum CouponDiscountType {
+  percentage
+  fixed
+}
+
+enum ReferralStatus {
+  pending
+  rewarded
+  expired
+}
+
 // ─── Models ─────────────────────────────────────────────────────
 model User {
   id           String     @id @default(uuid()) @db.Uuid
@@ -69,6 +80,8 @@ model User {
   role         UserRole   @default(customer)
   isActive     Boolean    @default(true) @map("is_active")
   avatarUrl    String?    @map("avatar_url") @db.VarChar(512)
+  referralCode String?    @unique @map("referral_code") @db.VarChar(20)
+  referredById String?    @map("referred_by_id") @db.Uuid
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
@@ -76,6 +89,12 @@ model User {
   customerOrders  Order[]       @relation("CustomerOrders")
   reviews         Review[]
   deviceTokens     DeviceToken[]
+  favorites        Favorite[]
+  addresses        Address[]
+  referredBy       User?           @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals        User[]          @relation("UserReferrals")
+  referralRewards  Referral[]      @relation("ReferralRewards")
+  refereeRecords   Referral[]      @relation("ReferralReferee")
 
   @@index([email])
   @@index([role])
@@ -96,6 +115,27 @@ model DeviceToken {
   @@unique([userId, token])
   @@index([token])
   @@map("device_tokens")
+}
+
+model Address {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  label      String   @default("Home") @db.VarChar(50)
+  addressLine1 String  @map("address_line1") @db.VarChar(255)
+  addressLine2 String? @map("address_line2") @db.VarChar(255)
+  city       String   @db.VarChar(100)
+  district   String?  @db.VarChar(100)
+  postalCode String?  @map("postal_code") @db.VarChar(20)
+  latitude   Float?
+  longitude  Float?
+  isDefault  Boolean  @default(false) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
 }
 
 model Merchant {
@@ -147,6 +187,7 @@ model Store {
   offers    Offer[]
   orders    Order[]
   reviews   Review[]
+  coupons   Coupon[]
 
   @@index([location]) /// GiST index created via raw SQL migration
   @@index([isActive])
@@ -200,6 +241,7 @@ model Offer {
   store  Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   orders Order[]
+  favoritedBy Favorite[]
 
   @@index([storeId, status, endTime])
   @@index([endTime])
@@ -226,6 +268,8 @@ model Order {
   pickedUpAt       DateTime?   @map("picked_up_at") @db.Timestamptz
   cancelledAt      DateTime?   @map("cancelled_at") @db.Timestamptz
   cancelReason     String?     @map("cancel_reason") @db.Text
+  couponId         String?     @map("coupon_id") @db.Uuid
+  discountAmount   Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
@@ -234,6 +278,7 @@ model Order {
   offer    Offer  @relation(fields: [offerId], references: [id])
   items    OrderItem[]
   payment  Payment?
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
   review   Review?
 
   @@unique([customerId, offerId], map: "idx_orders_customer_offer_unique")
@@ -291,6 +336,7 @@ model Review {
   storeId    String   @map("store_id") @db.Uuid
   rating     Int      @db.SmallInt
   comment    String?  @db.Text
+  imageUrl   String?  @map("image_url") @db.VarChar(512)
   createdAt  DateTime @default(now()) @map("created_at")
 
   customer User  @relation(fields: [customerId], references: [id])
@@ -300,4 +346,61 @@ model Review {
   @@index([storeId, rating])
   @@index([customerId])
   @@map("reviews")
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  offerId   String   @map("offer_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, offerId])
+  @@index([userId])
+  @@index([offerId])
+  @@map("favorites")
+}
+
+model Coupon {
+  id              String             @id @default(uuid()) @db.Uuid
+  storeId         String             @map("store_id") @db.Uuid
+  code            String             @unique @db.VarChar(50)
+  discountType    CouponDiscountType @map("discount_type")
+  discountValue   Decimal            @map("discount_value") @db.Decimal(10, 2)
+  minOrderAmount  Decimal?           @map("min_order_amount") @db.Decimal(10, 2)
+  maxDiscount     Decimal?           @map("max_discount") @db.Decimal(10, 2)
+  maxUses         Int                @default(100) @map("max_uses")
+  currentUses     Int                @default(0) @map("current_uses")
+  isActive        Boolean            @default(true) @map("is_active")
+  startsAt        DateTime?          @map("starts_at") @db.Timestamptz
+  expiresAt       DateTime?          @map("expires_at") @db.Timestamptz
+  description     String?            @db.VarChar(255)
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  store  Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([storeId])
+  @@index([code])
+  @@map("coupons")
+}
+
+model Referral {
+  id         String         @id @default(uuid()) @db.Uuid
+  referrerId String         @map("referrer_id") @db.Uuid
+  refereeId  String         @unique @map("referee_id") @db.Uuid
+  status     ReferralStatus @default(pending)
+  rewardAmount Decimal?     @map("reward_amount") @db.Decimal(10, 2)
+  createdAt  DateTime       @default(now()) @map("created_at")
+  rewardedAt DateTime?      @map("rewarded_at") @db.Timestamptz
+
+  referrer User @relation("ReferralRewards", fields: [referrerId], references: [id])
+  referee  User @relation("ReferralReferee", fields: [refereeId], references: [id])
+
+  @@index([referrerId])
+  @@index([refereeId])
+  @@map("referrals")
 }

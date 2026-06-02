@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../injector.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
 import 'package:lasthour_shared/src/widgets/offline_banner.dart';
@@ -44,6 +45,11 @@ class HomeShell extends StatelessWidget {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Orders',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.favorite_border),
+            selectedIcon: Icon(Icons.favorite),
+            label: 'Saved',
           ),
         ],
       ),

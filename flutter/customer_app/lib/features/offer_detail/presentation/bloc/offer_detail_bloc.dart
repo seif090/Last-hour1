@@ -21,7 +21,8 @@ class UpdateQuantity extends OfferDetailEvent {
 }
 class PlaceOrder extends OfferDetailEvent {
   final int quantity;
-  const PlaceOrder(this.quantity);
+  final String? couponCode;
+  const PlaceOrder(this.quantity, {this.couponCode});
 }
 class StockUpdated extends OfferDetailEvent {
   final int newStock;
@@ -133,6 +134,8 @@ class OfferDetailBloc extends Bloc<OfferDetailEvent, OfferDetailState> {
       final response = await _api.post('/api/v1/orders', body: {
         'offer_id': current.offer.id,
         'quantity': event.quantity,
+        if (event.couponCode != null && event.couponCode!.isNotEmpty)
+          'coupon_code': event.couponCode,
       });
 
       if (response.isSuccess && response.data != null) {

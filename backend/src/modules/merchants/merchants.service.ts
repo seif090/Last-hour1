@@ -144,6 +144,47 @@ export class MerchantsService {
     });
   }
 
+  async updateOffer(merchantId: string, offerId: string, data: {
+    title?: string;
+    description?: string;
+    discountedPrice?: number;
+    originalPrice?: number;
+    stockInitial?: number;
+    maxPerCustomer?: number;
+    startTime?: string;
+    endTime?: string;
+    imageUrl?: string;
+    tags?: string[];
+  }) {
+    const offer = await this.prisma.offer.findUnique({
+      where: { id: offerId },
+      include: { store: { select: { merchantId: true } } },
+    });
+    if (!offer || offer.store.merchantId !== merchantId) {
+      throw new BadRequestException('Offer not found');
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.discountedPrice !== undefined) updateData.discountedPrice = data.discountedPrice;
+    if (data.originalPrice !== undefined) updateData.originalPrice = data.originalPrice;
+    if (data.stockInitial !== undefined) {
+      updateData.stockInitial = data.stockInitial;
+      updateData.stockRemaining = data.stockInitial;
+    }
+    if (data.maxPerCustomer !== undefined) updateData.maxPerCustomer = data.maxPerCustomer;
+    if (data.startTime !== undefined) updateData.startTime = new Date(data.startTime);
+    if (data.endTime !== undefined) updateData.endTime = new Date(data.endTime);
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+    if (data.tags !== undefined) updateData.tags = data.tags;
+
+    return this.prisma.offer.update({
+      where: { id: offerId },
+      data: updateData,
+    });
+  }
+
   async updateStock(merchantId: string, offerId: string, stockRemaining: number) {
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
@@ -322,5 +363,85 @@ export class MerchantsService {
     }
 
     return updatedOrder;
+  }
+
+  async updateStoreHours(merchantId: string, storeId: string, dto: Record<string, string>) {
+    const store = await this.prisma.store.findUnique({
+      where: { id: storeId },
+      select: { merchantId: true },
+    });
+    if (!store || store.merchantId !== merchantId) {
+      throw new BadRequestException('Store not found');
+    }
+    const data: Record<string, unknown> = {};
+    if (dto.opensAt !== undefined) data.opensAt = dto.opensAt;
+    if (dto.closesAt !== undefined) data.closesAt = dto.closesAt;
+    if (dto.timezone !== undefined) data.timezone = dto.timezone;
+    return this.prisma.store.update({ where: { id: storeId }, data });
+  }
+
+  async getAnalytics(merchantId: string, days: number) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const stores = await this.prisma.store.findMany({
+      where: { merchantId },
+      select: { id: true },
+    });
+    const storeIds = stores.map((s) => s.id);
+
+    const [orders, revenue] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          storeId: { in: storeIds },
+          createdAt: { gte: startDate },
+        },
+        select: {
+          id: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+          storeId: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.order.aggregate({
+        where: {
+          storeId: { in: storeIds },
+          status: { in: ['picked_up', 'confirmed', 'preparing', 'ready'] },
+          createdAt: { gte: startDate },
+        },
+        _sum: { totalAmount: true },
+      }),
+    ]);
+
+    const ordersByDay: Record<string, { count: number; revenue: number }> = {};
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().split('T')[0];
+      ordersByDay[key] = { count: 0, revenue: 0 };
+    }
+
+    for (const order of orders) {
+      const key = order.createdAt.toISOString().split('T')[0];
+      if (ordersByDay[key]) {
+        ordersByDay[key].count++;
+        if (order.status !== 'cancelled' && order.status !== 'refunded') {
+          ordersByDay[key].revenue += Number(order.totalAmount);
+        }
+      }
+    }
+
+    return {
+      totalOrders: orders.length,
+      totalRevenue: Number(revenue._sum?.totalAmount ?? 0),
+      daily: Object.entries(ordersByDay).map(([date, data]) => ({
+        date,
+        orders: data.count,
+        revenue: data.revenue,
+      })),
+      stores: stores.length,
+    };
   }
 }

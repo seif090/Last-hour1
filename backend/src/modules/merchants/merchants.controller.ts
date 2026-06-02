@@ -42,6 +42,17 @@ export class MerchantsController {
     return { success: true, data: offer };
   }
 
+  @Patch('offers/:offerId')
+  @ApiOperation({ summary: 'Update an offer' })
+  async updateOffer(
+    @Param('offerId') offerId: string,
+    @Body() dto: Record<string, unknown>,
+    @Req() req: Request,
+  ) {
+    const offer = await this.merchantsService.updateOffer(req.user!.merchantId!, offerId, dto);
+    return { success: true, data: offer };
+  }
+
   @Patch('offers/:offerId/stock')
   @ApiOperation({ summary: 'Update live stock for an offer' })
   async updateStock(
@@ -82,5 +93,29 @@ export class MerchantsController {
       status,
     );
     return { success: true, data: order };
+  }
+
+  @Patch('stores/:storeId/hours')
+  @ApiOperation({ summary: 'Update store operating hours' })
+  async updateStoreHours(
+    @Param('storeId') storeId: string,
+    @Body() dto: Record<string, string>,
+    @Req() req: Request,
+  ) {
+    const store = await this.merchantsService.updateStoreHours(
+      req.user!.merchantId!,
+      storeId,
+      dto,
+    );
+    return { success: true, data: store };
+  }
+
+  @Get('analytics')
+  @ApiOperation({ summary: 'Get sales analytics' })
+  async getAnalytics(
+    @Req() req: Request,
+    @Query('days') days = '30',
+  ) {
+    return this.merchantsService.getAnalytics(req.user!.merchantId!, parseInt(days, 10));
   }
 }

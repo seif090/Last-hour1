@@ -5,9 +5,12 @@ import 'services/location_service.dart';
 import 'services/map_service.dart';
 import 'services/payment_service.dart';
 import 'services/websocket_service.dart';
+import 'services/notification_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/home/presentation/bloc/offers_bloc.dart';
 import 'features/orders/presentation/bloc/order_track_bloc.dart';
+import 'features/store_detail/presentation/bloc/store_detail_bloc.dart';
+import 'features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:lasthour_shared/constants/api_constants.dart';
 import 'package:lasthour_shared/src/services/connectivity_service.dart';
 
@@ -39,6 +42,10 @@ Future<void> initializeDependencies() async {
 
   sl.registerLazySingleton<PaymentService>(
     () => PaymentService(sl<ApiClient>()),
+  );
+
+  sl.registerLazySingleton<NotificationService>(
+    () => NotificationService(sl<ApiClient>()),
   );
 
   // WebSocket — initialized with empty token, updated after login via updateToken()

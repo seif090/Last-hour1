@@ -112,6 +112,13 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
         actions: [
           TextButton(
             onPressed: () {
+              Navigator.pop(ctx);
+              _showEditSheet(context, offer);
+            },
+            child: const Text('Edit'),
+          ),
+          TextButton(
+            onPressed: () {
               _bloc.add(EndOffer(offer.id));
               Navigator.pop(ctx);
             },
@@ -132,6 +139,14 @@ class _MerchantOffersPageState extends State<MerchantOffersPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditSheet(BuildContext context, Offer offer) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => _EditOfferSheet(bloc: _bloc, offer: offer),
     );
   }
 
@@ -257,6 +272,133 @@ class _CreateOfferSheetState extends State<_CreateOfferSheet> {
                 Navigator.pop(context);
               },
               child: const Text('Create Offer'),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EditOfferSheet extends StatefulWidget {
+  final MerchantOffersBloc bloc;
+  final Offer offer;
+  const _EditOfferSheet({required this.bloc, required this.offer});
+
+  @override
+  State<_EditOfferSheet> createState() => _EditOfferSheetState();
+}
+
+class _EditOfferSheetState extends State<_EditOfferSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _priceCtrl;
+  late final TextEditingController _originalPriceCtrl;
+  late final TextEditingController _stockCtrl;
+  late final TextEditingController _maxCtrl;
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _tagsCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceCtrl = TextEditingController(text: widget.offer.discountedPrice.toString());
+    _originalPriceCtrl = TextEditingController(text: widget.offer.originalPrice?.toString() ?? '');
+    _stockCtrl = TextEditingController(text: widget.offer.stockInitial.toString());
+    _maxCtrl = TextEditingController(text: widget.offer.maxPerCustomer?.toString() ?? '1');
+    _titleCtrl = TextEditingController(text: widget.offer.title);
+    _descCtrl = TextEditingController(text: widget.offer.description ?? '');
+    _tagsCtrl = TextEditingController(text: (widget.offer.tags as List?)?.join(', ') ?? '');
+  }
+
+  @override
+  void dispose() {
+    _priceCtrl.dispose();
+    _originalPriceCtrl.dispose();
+    _stockCtrl.dispose();
+    _maxCtrl.dispose();
+    _titleCtrl.dispose();
+    _descCtrl.dispose();
+    _tagsCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 24, right: 24, top: 24,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Edit Offer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _priceCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Discounted Price (EGP)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _originalPriceCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Original Price (optional)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _stockCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Stock', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _maxCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Max per customer', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _tagsCtrl,
+              decoration: const InputDecoration(labelText: 'Tags (comma separated)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                if (!_formKey.currentState!.validate()) return;
+                final data = <String, dynamic>{
+                  'title': _titleCtrl.text,
+                  'description': _descCtrl.text,
+                  'discountedPrice': double.parse(_priceCtrl.text),
+                  'stockInitial': int.parse(_stockCtrl.text),
+                  'maxPerCustomer': int.parse(_maxCtrl.text),
+                };
+                if (_originalPriceCtrl.text.isNotEmpty) {
+                  data['originalPrice'] = double.parse(_originalPriceCtrl.text);
+                }
+                if (_tagsCtrl.text.isNotEmpty) {
+                  data['tags'] = _tagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
+                }
+                widget.bloc.add(UpdateOffer(widget.offer.id, data));
+                Navigator.pop(context);
+              },
+              child: const Text('Save Changes'),
             ),
             const SizedBox(height: 24),
           ],

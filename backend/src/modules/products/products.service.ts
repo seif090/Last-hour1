@@ -7,6 +7,13 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findByStore(storeId: string) {
+    return this.prisma.product.findMany({
+      where: { storeId, isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async create(storeId: string, data: CreateProductDto) {
     return this.prisma.product.create({
       data: { ...data, storeId },

@@ -5,6 +5,8 @@ import '../bloc/order_track_bloc.dart';
 import '../widgets/status_timeline.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/error_screen.dart';
+import '../../../../core/widgets/star_rating.dart';
+import '../../../../services/api_client.dart';
 import '../../../../injector.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -17,6 +19,11 @@ class OrderDetailPage extends StatefulWidget {
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
   late final OrderTrackBloc _bloc;
+  int _rating = 0;
+  final _commentCtrl = TextEditingController();
+  bool _submittingReview = false;
+  bool _reviewSubmitted = false;
+  String? _reviewImageUrl;
 
   @override
   void initState() {
@@ -28,6 +35,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   @override
   void dispose() {
     _bloc.close();
+    _commentCtrl.dispose();
     super.dispose();
   }
 
@@ -114,11 +122,30 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    AppButton(
-                      label: 'Track Order',
-                      icon: Icons.timeline,
-                      onPressed: () => context.go('/orders/${order.id}/track'),
-                    ),
+                      AppButton(
+                        label: 'Track Order',
+                        icon: Icons.timeline,
+                        onPressed: () => context.go('/orders/${order.id}/track'),
+                      ),
+                      if (order.status == 'pending' || order.status == 'confirmed') ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _confirmCancel(order.id),
+                            icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                            label: const Text('Cancel Order', style: TextStyle(color: Colors.red)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.red),
+                              minimumSize: const Size(double.infinity, 48),
+                            ),
+                          ),
+                        ),
+                      ],
+                    if (order.status == 'picked_up') ...[
+                      const SizedBox(height: 24),
+                      _buildReviewSection(order),
+                    ],
                   ],
                 ),
               );
@@ -169,6 +196,173 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       ),
       child: Text(status[0].toUpperCase() + status.substring(1),
           style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)),
+    );
+  }
+
+  Widget _buildReviewSection(dynamic order) {
+    if (_reviewSubmitted) {
+      return Card(
+        color: Colors.green.shade50,
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(width: 12),
+              Text('Review submitted! Thank you.', style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Leave a Review', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (i) {
+                final star = i + 1;
+                return IconButton(
+                  icon: Icon(
+                    star <= _rating ? Icons.star : Icons.star_border,
+                    color: star <= _rating ? Colors.amber : Colors.grey.shade300,
+                    size: 36,
+                  ),
+                  onPressed: _submittingReview ? null : () => setState(() => _rating = star),
+                );
+              }),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Comment (optional)',
+                border: OutlineInputBorder(),
+                hintText: 'Share your experience...',
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _pickReviewImage(),
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text(_reviewImageUrl != null ? 'Change Photo' : 'Add Photo'),
+                ),
+                if (_reviewImageUrl != null) ...[
+                  const SizedBox(width: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(_reviewImageUrl!, width: 48, height: 48, fit: BoxFit.cover),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    onPressed: () => setState(() => _reviewImageUrl = null),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _rating > 0 && !_submittingReview ? () => _submitReview(order.id) : null,
+                child: _submittingReview
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Submit Review'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitReview(String orderId) async {
+    setState(() => _submittingReview = true);
+    try {
+      final api = sl<ApiClient>();
+      final response = await api.post('/api/v1/reviews', body: {
+        'orderId': orderId,
+        'rating': _rating,
+        'comment': _commentCtrl.text.trim().isNotEmpty ? _commentCtrl.text.trim() : null,
+        'imageUrl': _reviewImageUrl,
+      });
+      if (response.isSuccess) {
+        setState(() {
+          _submittingReview = false;
+          _reviewSubmitted = true;
+        });
+      } else {
+        setState(() => _submittingReview = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.error ?? 'Failed to submit review')),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _submittingReview = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  void _confirmCancel(String orderId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: const Text('Are you sure you want to cancel this order? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Keep Order')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _bloc.add(CancelOrder(orderId));
+            },
+            child: const Text('Cancel Order', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _pickReviewImage() {
+    final ctrl = TextEditingController(text: _reviewImageUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Photo URL'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(
+            hintText: 'Paste image URL',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final url = ctrl.text.trim();
+              if (url.isNotEmpty) {
+                setState(() => _reviewImageUrl = url);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 }

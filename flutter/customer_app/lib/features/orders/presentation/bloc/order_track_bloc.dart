@@ -11,7 +11,22 @@ abstract class OrderTrackEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadOrders extends OrderTrackEvent {}
+class LoadOrders extends OrderTrackEvent {
+  final String? status;
+  final String? startDate;
+  final String? endDate;
+  final double? minPrice;
+  final double? maxPrice;
+  final String? sort;
+  const LoadOrders({
+    this.status,
+    this.startDate,
+    this.endDate,
+    this.minPrice,
+    this.maxPrice,
+    this.sort,
+  });
+}
 class LoadOrderDetail extends OrderTrackEvent {
   final String orderId;
   const LoadOrderDetail(this.orderId);
@@ -21,6 +36,15 @@ class OrderStatusUpdated extends OrderTrackEvent {
   final String status;
   final String? estimatedReadyAt;
   const OrderStatusUpdated(this.orderId, this.status, {this.estimatedReadyAt});
+}
+class ConfirmPickup extends OrderTrackEvent {
+  final String orderId;
+  const ConfirmPickup(this.orderId);
+}
+class CancelOrder extends OrderTrackEvent {
+  final String orderId;
+  final String? reason;
+  const CancelOrder(this.orderId, {this.reason});
 }
 
 abstract class OrderTrackState extends Equatable {
@@ -62,6 +86,8 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
     on<LoadOrders>(_onLoadOrders);
     on<LoadOrderDetail>(_onLoadDetail);
     on<OrderStatusUpdated>(_onStatusUpdated);
+    on<ConfirmPickup>(_onConfirmPickup);
+    on<CancelOrder>(_onCancelOrder);
 
     _wsSub = _ws.onEvent('order:update').listen((msg) {
       final data = msg['data'] as Map<String, dynamic>;
@@ -76,7 +102,15 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
   Future<void> _onLoadOrders(LoadOrders event, Emitter<OrderTrackState> emit) async {
     emit(OrdersLoading());
     try {
-      final response = await _api.get('/api/v1/orders');
+      final params = <String, String>{};
+      if (event.status != null) params['status'] = event.status!;
+      if (event.startDate != null) params['startDate'] = event.startDate!;
+      if (event.endDate != null) params['endDate'] = event.endDate!;
+      if (event.minPrice != null) params['minPrice'] = event.minPrice.toString();
+      if (event.maxPrice != null) params['maxPrice'] = event.maxPrice.toString();
+      if (event.sort != null) params['sort'] = event.sort!;
+      final qs = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+      final response = await _api.get('/api/v1/orders${qs.isNotEmpty ? '?$qs' : ''}');
       if (response.isSuccess && response.data != null) {
         final orders = (response.data!['orders'] as List? ?? [])
             .map((j) => Order.fromJson(j as Map<String, dynamic>))
@@ -99,6 +133,33 @@ class OrderTrackBloc extends Bloc<OrderTrackEvent, OrderTrackState> {
         emit(OrderDetailLoaded(order));
       } else {
         emit(OrderTrackError(response.error ?? 'Order not found'));
+      }
+    } catch (e) {
+      emit(OrderTrackError(e.toString()));
+    }
+  }
+
+  Future<void> _onCancelOrder(CancelOrder event, Emitter<OrderTrackState> emit) async {
+    try {
+      final body = event.reason != null ? {'reason': event.reason} : <String, dynamic>{};
+      final response = await _api.patch('/api/v1/orders/${event.orderId}/cancel', body: body);
+      if (response.isSuccess) {
+        add(LoadOrderDetail(event.orderId));
+      } else {
+        emit(OrderTrackError(response.error ?? 'Failed to cancel order'));
+      }
+    } catch (e) {
+      emit(OrderTrackError(e.toString()));
+    }
+  }
+
+  Future<void> _onConfirmPickup(ConfirmPickup event, Emitter<OrderTrackState> emit) async {
+    try {
+      final response = await _api.patch('/api/v1/orders/${event.orderId}/status');
+      if (response.isSuccess) {
+        add(LoadOrderDetail(event.orderId));
+      } else {
+        emit(OrderTrackError(response.error ?? 'Failed to confirm pickup'));
       }
     } catch (e) {
       emit(OrderTrackError(e.toString()));
