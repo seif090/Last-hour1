@@ -23,7 +23,7 @@ class OrderCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: _statusColor(theme).withOpacity(0.1),
+                  color: _statusColor(theme).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(_statusIcon, color: _statusColor(theme), size: 28),
@@ -63,7 +63,7 @@ class OrderCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _statusColor(theme).withOpacity(0.1),
+                      color: _statusColor(theme).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

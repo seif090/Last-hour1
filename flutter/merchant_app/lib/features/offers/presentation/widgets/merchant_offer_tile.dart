@@ -18,7 +18,7 @@ class MerchantOfferTile extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: offer.isLowStock ? theme.colorScheme.error.withOpacity(0.1) : theme.colorScheme.tertiary.withOpacity(0.1),
+            color: offer.isLowStock ? theme.colorScheme.error.withValues(alpha: 0.1) : theme.colorScheme.tertiary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(

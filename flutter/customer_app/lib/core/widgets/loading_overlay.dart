@@ -20,7 +20,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: theme.colorScheme.scrim.withOpacity(0.2),
+            color: theme.colorScheme.scrim.withValues(alpha: 0.2),
             child: Center(
               child: Card(
                 child: Padding(

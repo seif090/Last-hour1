@@ -70,7 +70,7 @@ class StatusTimeline extends StatelessWidget {
                     color: isActive ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
                     border: isCurrent ? Border.all(color: theme.colorScheme.surface, width: 3) : null,
                     boxShadow: isCurrent
-                        ? [BoxShadow(color: theme.colorScheme.primary.withOpacity(0.4), blurRadius: 8)]
+                        ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.4), blurRadius: 8)]
                         : null,
                   ),
                 ),
@@ -78,7 +78,7 @@ class StatusTimeline extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: isActive ? theme.colorScheme.primary.withOpacity(0.3) : theme.colorScheme.outlineVariant.withOpacity(0.5),
+                      color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.3) : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                     ),
                   ),
               ],
@@ -103,7 +103,7 @@ class StatusTimeline extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       _formatTime(time),
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
+                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                     ),
                   ],
                 ],

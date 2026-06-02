@@ -77,7 +77,7 @@ class OfferCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -161,7 +161,7 @@ class OfferCard extends StatelessWidget {
             icon: Icon(
               isFavorited ? Icons.favorite : Icons.favorite_border,
               color: isFavorited ? theme.colorScheme.error : theme.colorScheme.onSurface,
-              shadows: [Shadow(color: theme.colorScheme.inverseSurface.withOpacity(0.5), blurRadius: 4)],
+              shadows: [Shadow(color: theme.colorScheme.inverseSurface.withValues(alpha: 0.5), blurRadius: 4)],
             ),
             onPressed: onFavoriteToggle,
           ),
