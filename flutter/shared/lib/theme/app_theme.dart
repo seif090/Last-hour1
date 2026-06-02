@@ -2,14 +2,73 @@ import 'package:flutter/material.dart';
 import 'brand_colors.dart';
 import 'brand_typography.dart';
 
-/// Last Hour brand [ThemeData] factory — Electric Crimson + Deep Navy.
+/// Last Hour brand [ThemeData] — exact values from DESIGN.md.
 class AppTheme {
   AppTheme._();
 
+  /// Exact Material 3 dark color scheme from DESIGN.md structured data.
+  static const ColorScheme _darkColorScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: BrandColors.primary,
+    onPrimary: BrandColors.onPrimary,
+    primaryContainer: BrandColors.primaryContainer,
+    onPrimaryContainer: BrandColors.onPrimaryContainer,
+    secondary: BrandColors.secondary,
+    onSecondary: BrandColors.onSecondary,
+    secondaryContainer: BrandColors.secondaryContainer,
+    onSecondaryContainer: BrandColors.onSecondaryContainer,
+    tertiary: BrandColors.tertiary,
+    onTertiary: BrandColors.onTertiary,
+    tertiaryContainer: BrandColors.tertiaryContainer,
+    onTertiaryContainer: BrandColors.onTertiaryContainer,
+    error: BrandColors.error,
+    onError: BrandColors.onError,
+    errorContainer: BrandColors.errorContainer,
+    onErrorContainer: BrandColors.onErrorContainer,
+    surface: BrandColors.surface,
+    onSurface: BrandColors.onSurface,
+    surfaceContainerHighest: BrandColors.surfaceContainerHighest,
+    onSurfaceVariant: BrandColors.onSurfaceVariant,
+    outline: BrandColors.outline,
+    outlineVariant: BrandColors.outlineVariant,
+    inverseSurface: BrandColors.inverseSurface,
+    inversePrimary: BrandColors.inversePrimary,
+  );
+
+  /// Light scheme — derived by inverting the dark scheme.
+  static const ColorScheme _lightColorScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: BrandColors.inversePrimary,
+    onPrimary: Colors.white,
+    primaryContainer: BrandColors.primaryContainer,
+    onPrimaryContainer: Colors.white,
+    secondary: BrandColors.onSecondary,
+    onSecondary: Colors.white,
+    secondaryContainer: BrandColors.secondaryContainer,
+    onSecondaryContainer: Colors.white,
+    tertiary: BrandColors.onTertiary,
+    onTertiary: Colors.white,
+    tertiaryContainer: BrandColors.tertiaryContainer,
+    onTertiaryContainer: Colors.white,
+    error: BrandColors.onError,
+    onError: Colors.white,
+    errorContainer: BrandColors.errorContainer,
+    onErrorContainer: Colors.white,
+    surface: BrandColors.lightSurface,
+    onSurface: BrandColors.lightOnSurface,
+    surfaceContainerHighest: BrandColors.lightSurfaceContainer,
+    onSurfaceVariant: BrandColors.lightOnSurfaceVariant,
+    outline: BrandColors.lightOutline,
+    outlineVariant: BrandColors.lightOutline,
+    inverseSurface: BrandColors.surface,
+    inversePrimary: BrandColors.primary,
+  );
+
+  // ── Theme data ──
+
   static ThemeData get light => ThemeData(
         useMaterial3: true,
-        brightness: Brightness.light,
-        colorSchemeSeed: BrandColors.primary,
+        colorScheme: _lightColorScheme,
         scaffoldBackgroundColor: BrandColors.lightSurface,
         textTheme: BrandTypography.textTheme,
         appBarTheme: const AppBarTheme(
@@ -29,20 +88,20 @@ class AppTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: BrandColors.primary,
-            foregroundColor: BrandColors.onPrimary,
+            backgroundColor: _lightColorScheme.primary,
+            foregroundColor: _lightColorScheme.onPrimary,
             minimumSize: const Size(double.infinity, 52),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: BrandTypography.bodyLg(color: BrandColors.onPrimary).copyWith(fontWeight: FontWeight.w700),
+            textStyle: BrandTypography.bodyLg().copyWith(fontWeight: FontWeight.w700),
           ),
         ),
         chipTheme: ChipThemeData(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          selectedColor: BrandColors.primary.withOpacity(0.15),
-          labelStyle: BrandTypography.bodyMd(),
+          selectedColor: BrandColors.primaryContainer.withOpacity(0.3),
+          labelStyle: BrandTypography.bodyMd(color: BrandColors.lightOnSurface),
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          selectedItemColor: BrandColors.primary,
+          selectedItemColor: BrandColors.inversePrimary,
           type: BottomNavigationBarType.fixed,
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -50,15 +109,17 @@ class AppTheme {
           fillColor: BrandColors.lightSurface,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BrandColors.lightOutline)),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BrandColors.lightOutline)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: BrandColors.primary, width: 2)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: BrandColors.inversePrimary, width: 2),
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       );
 
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: BrandColors.primary,
+        colorScheme: _darkColorScheme,
         scaffoldBackgroundColor: BrandColors.surface,
         textTheme: BrandTypography.textTheme,
         appBarTheme: AppBarTheme(
@@ -87,7 +148,7 @@ class AppTheme {
         ),
         chipTheme: ChipThemeData(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          selectedColor: BrandColors.primary.withOpacity(0.2),
+          selectedColor: BrandColors.primaryContainer.withOpacity(0.3),
           labelStyle: BrandTypography.bodyMd(color: BrandColors.onSurface),
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -110,7 +171,7 @@ class AppTheme {
         ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: BrandColors.surfaceContainer.withOpacity(0.95),
-          indicatorColor: BrandColors.primary.withOpacity(0.2),
+          indicatorColor: BrandColors.primaryContainer.withOpacity(0.3),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return BrandTypography.labelBold(color: BrandColors.primary);
