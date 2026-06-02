@@ -1,5 +1,6 @@
 'use client';
 
+import ErrorBoundary from '@/components/error-boundary';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -68,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="w-5" />
           </div>
         </header>
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6"><ErrorBoundary>{children}</ErrorBoundary></main>
       </div>
     </div>
   );

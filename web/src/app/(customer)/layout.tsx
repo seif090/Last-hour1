@@ -1,5 +1,7 @@
 'use client';
 
+import ErrorBoundary from '@/components/error-boundary';
+
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
@@ -45,7 +47,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 pb-20">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 py-6 pb-20">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white">
         <div className="mx-auto flex max-w-5xl justify-around">
