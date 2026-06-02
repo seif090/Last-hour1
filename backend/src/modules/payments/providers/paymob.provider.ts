@@ -65,8 +65,8 @@ export class PaymobProvider implements PaymentProvider {
         paymentKey: paymentKey.token,
         iframeUrl: `https://accept.paymob.com/api/acceptance/iframes/${this.integrationId}?payment_token=${paymentKey.token}`,
       };
-    } catch (err: any) {
-      this.logger.error(`Paymob charge failed: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.error(`Paymob charge failed: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     }
   }

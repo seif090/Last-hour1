@@ -36,9 +36,8 @@ export class WsAuthGuard implements CanActivate {
       };
 
       return true;
-    } catch (err: any) {
-      this.logger.warn(`WebSocket auth failed: ${err.message}`);
-      client.emit('error', { code: 'INVALID_TOKEN', message: 'Invalid or expired token' });
+    } catch (err: unknown) {
+      this.logger.warn(`WS auth failed: ${err instanceof Error ? err.message : String(err)}`);
       client.disconnect();
       throw new WsException('Invalid or expired token');
     }

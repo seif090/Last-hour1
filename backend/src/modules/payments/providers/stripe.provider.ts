@@ -37,8 +37,8 @@ export class StripeProvider implements PaymentProvider {
         amount: order.totalAmount,
         status: paymentIntent.status === 'succeeded' ? 'captured' : 'pending',
       };
-    } catch (err: any) {
-      this.logger.error(`Stripe charge failed: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.error(`Stripe charge failed: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     }
   }

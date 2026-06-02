@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lasthour_shared/models/offer.dart';
 import '../bloc/offer_detail_bloc.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/loading_overlay.dart';
@@ -82,7 +83,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, dynamic offer) {
+  Widget _buildAppBar(BuildContext context, Offer offer) {
     return SliverAppBar(
       expandedHeight: 240,
       pinned: true,
